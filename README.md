@@ -5,7 +5,7 @@ Shared agent skills for Salesforce engineers, compatible with the [skills CLI](h
 ## Installation
 
 ```bash
-npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git
+npx skills add -g https://github.com/thomaschangsf/skills
 ```
 
 This will prompt you to select which skills to install and which agent(s) to install them for.
@@ -31,18 +31,18 @@ This will prompt you to select which skills to install and which agent(s) to ins
 
 | Skill | Description | Install |
 |-------|-------------|---------|
-| `commit` | Create a git commit with a well-formatted message describing the changes | `npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git -s commit` |
-| `cursor-delegate` | Delegate tasks to the Cursor agent CLI in headless mode | `npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git -s cursor-delegate` |
-| `gus` | Query, create, and update GUS work items, sprints, and teams via the Salesforce CLI | `npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git -s gus` |
-| `gws-google-docs` | Use the gws CLI to search, read, create, and import Google Docs across Drive and shared drives | `npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git -s gws-google-docs` |
-| `pr` | Create a pull request using the GitHub CLI | `npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git -s pr` |
-| `pr-review` | Review a GitHub pull request for bugs, risks, and quality issues | `npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git -s pr-review` |
-| `strata-config` | Create or debug `.strata.yml` for SFCI Managed pipelines: stages, steps, globals | `npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git -s strata-config` |
+| `commit` | Create a git commit with a well-formatted message describing the changes | `npx skills add -g https://github.com/thomaschangsf/skills -s commit` |
+| `cursor-delegate` | Delegate tasks to the Cursor agent CLI in headless mode | `npx skills add -g https://github.com/thomaschangsf/skills -s cursor-delegate` |
+| `gus` | Query, create, and update GUS work items, sprints, and teams via the Salesforce CLI | `npx skills add -g https://github.com/thomaschangsf/skills -s gus` |
+| `gws-google-docs` | Use the gws CLI to search, read, create, and import Google Docs across Drive and shared drives | `npx skills add -g https://github.com/thomaschangsf/skills -s gws-google-docs` |
+| `pr` | Create a pull request using the GitHub CLI | `npx skills add -g https://github.com/thomaschangsf/skills -s pr` |
+| `pr-review` | Review a GitHub pull request for bugs, risks, and quality issues | `npx skills add -g https://github.com/thomaschangsf/skills -s pr-review` |
+| `strata-config` | Create or debug `.strata.yml` for SFCI Managed pipelines: stages, steps, globals | `npx skills add -g https://github.com/thomaschangsf/skills -s strata-config` |
 
 ### Install All Skills
 
 ```bash
-npx skills add -g git@git.soma.salesforce.com:cpredmore/skills.git --all
+npx skills add -g https://github.com/thomaschangsf/skills --all
 ```
 
 ## Guides
