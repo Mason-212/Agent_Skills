@@ -48,6 +48,14 @@ Activate this skill when:
 | Work Item Object | `ADM_Work__c` |
 | Work ID Format | `W-XXXXXXXX` (e.g., `W-12345678`) |
 
+### Salesforce CLI (`sf`) setup
+
+If `sf` is missing or outdated:
+
+1. **Verify** — `sf --version` (expect the modern **sf** v2 CLI, not legacy `sfdx`-only workflows).
+2. **Install** — Follow Salesforce’s guide: [Install Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm). Common options: platform installer from [Salesforce CLI download](https://developer.salesforce.com/tools/salesforcecli), or `npm install -g @salesforce/cli` if your environment allows it.
+3. **GUS authentication** — If `sf org list` does not show org id `00DT0000000DpvcMAC`, run the **GUS login** in [Determining Your Target Org](#determining-your-target-org) below.
+
 ### Determining Your Target Org
 
 All commands require `--target-org <username>@gus.com`. To find the correct username, run:
