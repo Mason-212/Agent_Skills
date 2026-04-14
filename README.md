@@ -1,6 +1,6 @@
 # Skills
 
-Shared agent skills for Salesforce engineers, compatible with the [skills CLI](https://github.com/anthropics/skills) (skills.sh v1.4.5+).
+Shared agent skills for Salesforce engineers, compatible with the [skills CLI](https://github.com/vercel-labs/skills) ([skills.sh](https://skills.sh)).
 
 ## Installation (Cursor + Private Repo)
 
@@ -42,55 +42,82 @@ ssh-add -l                # should list your key
 ssh -T git@github.com     # should say "Hi <user>! You've successfully authenticated"
 ```
 
-### Step 1: Install Skills
+### Skills Git remote (shell variable)
+
+Examples below use **`SKILLS_SSH_URL`**. Set it from **`SKILLS_GIT_REMOTE_PREFIX`** (SSH host and GitHub org or user—everything before `/skills.git`), or set **`SKILLS_SSH_URL`** directly if the repo is not named `skills`:
 
 ```bash
-npx skills add -g -y git@github.com:thomaschangsf/skills.git
+SKILLS_GIT_REMOTE_PREFIX="${SKILLS_GIT_REMOTE_PREFIX:-git@github.com:thomaschangsf}"
+SKILLS_SSH_URL="${SKILLS_SSH_URL:-${SKILLS_GIT_REMOTE_PREFIX}/skills.git}"
 ```
 
-This installs all skills globally to `~/.agents/skills/` for every detected agent (Claude Code, Cursor, Gemini CLI, etc.).
+Use the same lines in the shell where you run `npx skills` (or export them from your profile). The refresh script honors the same variables.
 
-> **Important:** You must use the SSH URL (`git@github.com:...`). HTTPS URLs will silently hang waiting for credentials and time out after 60 seconds.
+### Step 1: Install skills (Cursor, Claude Code, shared `~/.agents/skills`)
 
-### Step 2: Link Skills into Cursor
+Each coding agent reads skills from its **own** global directory. Install this package explicitly for **Cursor**, **Claude Code**, and the **shared `~/.agents/skills`** tree (the skills CLI maps that path to the `cline` agent target—see the script header for why we use `cline` even if you do not use Cline).
 
-The skills CLI installs to `~/.agents/skills/` (the universal agent directory), but Cursor discovers skills from `~/.cursor/skills/` and does not follow symlinks. Copy the skills into Cursor's directory:
+Use **`--copy`** so each location gets real directories. Cursor often does not follow symlinks into another tree; copies avoid invisible or stale skills.
 
 ```bash
-mkdir -p ~/.cursor/skills
-for skill in ~/.agents/skills/*/; do
-  name=$(basename "$skill")
-  [ ! -e "$HOME/.cursor/skills/$name" ] && cp -R "$skill" "$HOME/.cursor/skills/$name"
-done
+SKILLS_GIT_REMOTE_PREFIX="${SKILLS_GIT_REMOTE_PREFIX:-git@github.com:thomaschangsf}"
+SKILLS_SSH_URL="${SKILLS_SSH_URL:-${SKILLS_GIT_REMOTE_PREFIX}/skills.git}"
+npx skills add -g -y "${SKILLS_SSH_URL}" \
+  --agent cursor --agent claude-code --agent cline \
+  --all --copy
 ```
 
-### Step 3: Reload Cursor
+| Path | Agent flag | Used by |
+|------|------------|---------|
+| `~/.cursor/skills/` | `cursor` | Cursor |
+| `~/.claude/skills/` | `claude-code` | Claude Code |
+| `~/.agents/skills/` | `cline` | Shared personal skills directory in the open agent skills ecosystem (CLI global path for Cline/Warp) |
 
-Reload the window so Cursor picks up the new skills:
+> **Important:** Use the SSH URL (`git@github.com:...`). HTTPS URLs can hang waiting for credentials and time out after 60 seconds.
 
-**Cmd+Shift+P → Developer: Reload Window**
+### Step 2: Reload agents
+
+- **Cursor:** **Cmd+Shift+P → Developer: Reload Window**
+- **Claude Code:** Restart or reload so it picks up `~/.claude/skills/`.
 
 ### Verify
 
 ```bash
-npx skills list -g          # lists all installed skills
-ls ~/.cursor/skills/        # should show all skill directories
+npx skills list -g
+ls ~/.cursor/skills/ ~/.claude/skills/ ~/.agents/skills/
 ```
 
 ### Updating
 
-When skills are updated upstream, pull the latest versions, then re-copy into Cursor:
+Run the helper script (recommended). It runs `npx skills add …` for the same three agents (idempotent registration), then `npx skills update -g`:
 
 ```bash
-npx skills update -g
-
-# Re-copy updated skills into Cursor (overwrites old copies)
-for skill in ~/.agents/skills/*/; do
-  name=$(basename "$skill")
-  rm -rf "$HOME/.cursor/skills/$name"
-  cp -R "$skill" "$HOME/.cursor/skills/$name"
-done
+./scripts/dev_refresh_skill_from_repo.sh
 ```
+
+Manual equivalent:
+
+```bash
+SKILLS_GIT_REMOTE_PREFIX="${SKILLS_GIT_REMOTE_PREFIX:-git@github.com:thomaschangsf}"
+SKILLS_SSH_URL="${SKILLS_SSH_URL:-${SKILLS_GIT_REMOTE_PREFIX}/skills.git}"
+npx skills add -g -y "${SKILLS_SSH_URL}" \
+  --agent cursor --agent claude-code --agent cline \
+  --all --copy
+npx skills update -g
+```
+
+### `dev_refresh_skill_from_repo`
+
+The script [`scripts/dev_refresh_skill_from_repo.sh`](scripts/dev_refresh_skill_from_repo.sh) installs or refreshes the global package for **`cursor`**, **`claude-code`**, and **`cline`** (see paths in Step 1). It uses **`--copy`** so skills are materialized under each directory without symlink indirection.
+
+**Optional env:**
+
+- `SKILLS_GIT_REMOTE_PREFIX` — default `git@github.com:thomaschangsf` (SSH host and org/user; no `.git`).
+- `SKILLS_SSH_URL` — full package URL; default `${SKILLS_GIT_REMOTE_PREFIX}/skills.git`.
+- `SKILLS_PACKAGE_PATH` — absolute path to **this** repository root (the directory that contains `skills/`). When set, the script installs from that directory instead of cloning `SKILLS_SSH_URL`. Use this for **unpushed** renames or new skills; otherwise `npx skills add` only sees what is on **GitHub**.
+- `SKILLS_AGENTS` — space-separated agent ids (default `cursor claude-code cline`).
+
+**Listing global skills:** use **`npx skills list -g`**. Without **`-g`**, the CLI lists **project** skills for the current directory (often empty or different from your global install).
 
 ### Common Commands
 
@@ -101,6 +128,8 @@ done
 | `npx skills remove -g [skills]` | Remove installed skills |
 | `npx skills update -g` | Update all skills to latest versions |
 | `npx skills add -g <package> -l` | List available skills without installing |
+| `./scripts/dev_refresh_skill_from_repo.sh` | Refresh global installs under `~/.cursor/skills/`, `~/.claude/skills/`, and `~/.agents/skills/` |
+| `./scripts/dev_start_branch_from_master.sh` | Create a new branch from up-to-date `origin/<GIT_BASE_BRANCH>` (default `master`); prompts for the branch name if omitted; untracked files do not block the switch |
 
 ### Options
 
@@ -113,18 +142,26 @@ done
 
 | Skill | Description | Install |
 |-------|-------------|---------|
-| `commit` | Create a git commit with a well-formatted message describing the changes | `npx skills add -g git@github.com:thomaschangsf/skills.git -s commit` |
-| `cursor-delegate` | Delegate tasks to the Cursor agent CLI in headless mode | `npx skills add -g git@github.com:thomaschangsf/skills.git -s cursor-delegate` |
-| `gus` | Query, create, and update GUS work items, sprints, and teams via the Salesforce CLI | `npx skills add -g git@github.com:thomaschangsf/skills.git -s gus` |
-| `gws-google-docs` | Use the gws CLI to search, read, create, and import Google Docs across Drive and shared drives | `npx skills add -g git@github.com:thomaschangsf/skills.git -s gws-google-docs` |
-| `pr` | Create a pull request using the GitHub CLI | `npx skills add -g git@github.com:thomaschangsf/skills.git -s pr` |
-| `pr-review` | Review a GitHub pull request for bugs, risks, and quality issues | `npx skills add -g git@github.com:thomaschangsf/skills.git -s pr-review` |
-| `strata-config` | Create or debug `.strata.yml` for SFCI Managed pipelines: stages, steps, globals | `npx skills add -g git@github.com:thomaschangsf/skills.git -s strata-config` |
+| `git-commit` | Create a git commit with a well-formatted message describing the changes | `npx skills add -g "${SKILLS_SSH_URL}" -s git-commit` |
+| `git-review` | Review local branch and working tree vs `origin/master` (same bar as `pr-review-remote`) | `npx skills add -g "${SKILLS_SSH_URL}" -s git-review` |
+| `cursor-delegate` | Delegate tasks to the Cursor agent CLI in headless mode | `npx skills add -g "${SKILLS_SSH_URL}" -s cursor-delegate` |
+| `code-design-critique` | Design critique scoped to branch vs `origin/master` (commits + staged/unstaged); blind spots, scale, AI slop | `npx skills add -g "${SKILLS_SSH_URL}" -s code-design-critique` |
+| `gus` | Query, create, and update GUS work items, sprints, and teams via the Salesforce CLI | `npx skills add -g "${SKILLS_SSH_URL}" -s gus` |
+| `gws-google-docs` | Use the gws CLI to search, read, create, and import Google Docs across Drive and shared drives | `npx skills add -g "${SKILLS_SSH_URL}" -s gws-google-docs` |
+| `pr-create` | Create a pull request using the GitHub CLI | `npx skills add -g "${SKILLS_SSH_URL}" -s pr-create` |
+| `pr-review-remote` | Review a remote GitHub pull request for bugs, risks, and quality issues | `npx skills add -g "${SKILLS_SSH_URL}" -s pr-review-remote` |
+| `strata-config` | Create or debug `.strata.yml` for SFCI Managed pipelines: stages, steps, globals | `npx skills add -g "${SKILLS_SSH_URL}" -s strata-config` |
+
+Set `SKILLS_SSH_URL` (or `SKILLS_GIT_REMOTE_PREFIX`) as in [Skills Git remote](#skills-git-remote-shell-variable) before running these install commands.
 
 ### Install All Skills
 
 ```bash
-npx skills add -g git@github.com:thomaschangsf/skills.git --all
+SKILLS_GIT_REMOTE_PREFIX="${SKILLS_GIT_REMOTE_PREFIX:-git@github.com:thomaschangsf}"
+SKILLS_SSH_URL="${SKILLS_SSH_URL:-${SKILLS_GIT_REMOTE_PREFIX}/skills.git}"
+npx skills add -g -y "${SKILLS_SSH_URL}" \
+  --agent cursor --agent claude-code --agent cline \
+  --all --copy
 ```
 
 ## Guides

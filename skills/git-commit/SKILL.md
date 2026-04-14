@@ -1,9 +1,9 @@
 ---
-name: commit
+name: git-commit
 description: Create a git commit with a well-formatted message describing the changes
 ---
 
-# Commit
+# Git Commit
 
 ## When to Use
 

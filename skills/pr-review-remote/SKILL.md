@@ -1,9 +1,9 @@
 ---
-name: pr-review
-description: Review GitHub pull requests for bugs, regressions, security risks, and missing tests.
+name: pr-review-remote
+description: Review remote GitHub PRs for bugs, regressions, security risks, and missing tests.
 ---
 
-# PR Review
+# PR Review Remote
 
 ## When to Use
 

@@ -1,9 +1,9 @@
 ---
-name: pr
+name: pr-create
 description: Create a pull request using the GitHub CLI
 ---
 
-# Pull Request
+# PR Create
 
 ## When to Use
 
