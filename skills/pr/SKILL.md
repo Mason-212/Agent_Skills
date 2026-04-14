@@ -28,8 +28,8 @@ description: Create a pull request using the GitHub CLI
 5. **Generate the PR title.**
    - Derive a concise title from the commits and changes on the branch.
    - If the user provided a title, use it.
-   - If the current branch matches the pattern `cpredmore/w-NNNNNNNNN-*` (where `NNNNNNNNN` is a numeric GUS work-item ID), prefix the title with `@W-NNNNNNNNN: `.
-   - Example: branch `cpredmore/w-123456789-fix-login` produces a prefix of `@W-123456789: `.
+   - If the current branch matches the pattern `thomaschang/w-NNNNNNNNN-*` (where `NNNNNNNNN` is a numeric GUS work-item ID), prefix the title with `@W-NNNNNNNNN: `.
+   - Example: branch `thomaschang/w-123456789-fix-login` produces a prefix of `@W-123456789: `.
 
 6. **Generate the PR description.**
    - Summarize what changed and why, based on the commit log and diffs.

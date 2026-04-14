@@ -32,8 +32,8 @@ description: Create a git commit with a well-formatted message describing the ch
    - For complex changes, add a blank line after the subject followed by a body that explains **what** changed and **why**.
 
 4. **Apply the GUS work-item prefix.** Check the current branch name:
-   - If the branch matches the pattern `cpredmore/w-NNNNNNNNN-*` (where `NNNNNNNNN` is a numeric GUS work-item ID), prefix the commit subject with `@W-NNNNNNNNN: `.
-   - Example: branch `cpredmore/w-123456789-fix-login` produces a prefix of `@W-123456789: `.
+   - If the branch matches the pattern `thomaschang/w-NNNNNNNNN-*` (where `NNNNNNNNN` is a numeric GUS work-item ID), prefix the commit subject with `@W-NNNNNNNNN: `.
+   - Example: branch `thomschang/w-123456789-fix-login` produces a prefix of `@W-123456789: `.
    - If the branch does not match this pattern, do not add a prefix.
 
 5. **Commit.** Run `git commit` with the final message.
