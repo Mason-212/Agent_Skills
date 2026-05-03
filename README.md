@@ -63,6 +63,7 @@ In Cursor chat, invoke skills by name (with leading `/` if your client uses that
 
 | Intent | Command |
 |--------|---------|
+| Rubrics-based critique (stress-test, blind spots, anti-slop, code, ML; infers paths) | `/critique-me` |
 | Design / approach (scoped to branch vs default base) | `/code-design-critique` |
 | Commit | `/git-commit` |
 | Local code review (same bar as remote PR review) | `/git-review` |
@@ -199,6 +200,7 @@ Skills live under `skills/<skill-name>/SKILL.md`. Install a subset with **`-s <s
 | Skill | Description | Install |
 |-------|-------------|---------|
 | `code-design-critique` | Design critique vs default base (`origin/master`, or **`GIT_BASE_BRANCH`**); commits + staged/unstaged | `npx skills add -g "${SKILLS_SSH_URL}" -s code-design-critique` |
+| `critique-me` | Critique plans, specs, or pasted output with selectable rubrics; infers paths from message | `npx skills add -g "${SKILLS_SSH_URL}" -s critique-me` |
 | `cursor-delegate` | Delegate tasks to the Cursor agent CLI in headless mode | `npx skills add -g "${SKILLS_SSH_URL}" -s cursor-delegate` |
 | `edc-splunk` | Splunk SPL with this repo’s knowledge base (indexes, fields, examples) | `npx skills add -g "${SKILLS_SSH_URL}" -s edc-splunk` |
 | `git-commit` | Create a git commit with a well-formatted message describing the changes | `npx skills add -g "${SKILLS_SSH_URL}" -s git-commit` |
