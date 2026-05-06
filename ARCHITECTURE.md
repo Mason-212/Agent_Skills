@@ -10,7 +10,7 @@ skills/
 │   ├── convert-pdf-to-md/    # Workflow guidance for PDF conversion
 │   ├── git-commit/           # Git commit workflow
 │   └── ...                   # Other skills
-├── tools/                     # MCP servers (executable tools)
+├── plugins/                     # MCP servers (executable tools)
 │   ├── pdf_to_md/            # Direct PDF conversion execution
 │   └── ...                   # Future tools
 └── scripts/
@@ -37,7 +37,7 @@ skills/
 - Explains when to use OCR, how to handle tables, diagram conversion strategies
 - AI orchestrates native tools (Read, Bash, Write) following the guidance
 
-### Tools (`tools/`)
+### Tools (`plugins/`)
 
 **Nature**: Executable MCP (Model Context Protocol) servers  
 **Format**: Node.js packages with `index.js` entry point  
@@ -50,7 +50,7 @@ skills/
 - ✅ Performance-critical operations
 - ✅ Operations requiring specialized libraries or executables
 
-**Example**: `tools/pdf_to_md/`
+**Example**: `plugins/pdf_to_md/`
 - Wraps Python script for direct execution
 - Provides single tool call: `convert_pdf_to_md(pdf_path, options)`
 - Faster, more reliable than orchestrating multiple steps
@@ -68,7 +68,7 @@ Skills and tools work **together**, not in competition:
 - User benefits from guidance even without tool setup
 
 **Scenario 2**: User with MCP tool configured
-- AI uses **tool** (`tools/pdf_to_md/`) for fast execution
+- AI uses **tool** (`plugins/pdf_to_md/`) for fast execution
 - Falls back to **skill** if tool fails or user wants to understand process
 - Best of both worlds: speed + flexibility
 
@@ -120,9 +120,9 @@ TOOLS_MODE=github ./scripts/dev_refresh_skills_and_tools.sh
 
 #### Add a New Tool
 
-1. Create directory: `tools/<tool-name>/`
+1. Create directory: `plugins/<tool-name>/`
 2. Add `package.json`, `index.js` (must be executable)
-3. Implement MCP server (see `tools/pdf_to_md/index.js` as template)
+3. Implement MCP server (see `plugins/pdf_to_md/index.js` as template)
 4. Run refresh script: `./scripts/dev_refresh_skills_and_tools.sh`
 
 The script automatically discovers and configures new content!
@@ -141,7 +141,7 @@ The script automatically discovers and configures new content!
   "mcpServers": {
     "pdf_to_md": {
       "command": "node",
-      "args": ["/absolute/path/to/tools/pdf_to_md/index.js"]
+      "args": ["/absolute/path/to/plugins/pdf_to_md/index.js"]
     }
   }
 }
@@ -164,7 +164,7 @@ TOOLS_MODE=github ./scripts/dev_refresh_skills_and_tools.sh
   "mcpServers": {
     "pdf_to_md": {
       "command": "npx",
-      "args": ["-y", "github:thomaschangsf/skills#tools/pdf_to_md"]
+      "args": ["-y", "github:thomaschangsf/skills#plugins/pdf_to_md"]
     }
   }
 }
@@ -226,7 +226,7 @@ TOOLS_MODE=github ./scripts/dev_refresh_skills_and_tools.sh
 
 4. **Create tool** for performance:
    ```bash
-   mkdir tools/my-new-feature
+   mkdir plugins/my-new-feature
    # Implement MCP server
    ./scripts/dev_refresh_skills_and_tools.sh
    ```
@@ -258,7 +258,7 @@ TOOLS_MODE=github ./scripts/dev_refresh_skills_and_tools.sh
 **Skill**: `skills/convert-pdf-to-md/`
 - Workflow guidance, decision trees, best practices
 
-**Tool**: `tools/pdf_to_md/`
+**Tool**: `plugins/pdf_to_md/`
 - Fast atomic execution wrapping Python script
 
 **Why both?**: 
@@ -267,7 +267,7 @@ TOOLS_MODE=github ./scripts/dev_refresh_skills_and_tools.sh
 
 ### Future: Database Query Tool (Tool Only)
 
-**Location**: `tools/db-query/` (hypothetical)
+**Location**: `plugins/db-query/` (hypothetical)
 
 **Why tool, not skill?**:
 - Requires database connection (external service)
@@ -294,8 +294,8 @@ cat ~/.claude/settings.json    # Claude Code
 cat ~/.cursor/mcp.json         # Cursor
 
 # Verify tool structure
-ls -la tools/pdf_to_md/        # Should have index.js, package.json
-chmod +x tools/pdf_to_md/index.js  # Ensure executable
+ls -la plugins/pdf_to_md/        # Should have index.js, package.json
+chmod +x plugins/pdf_to_md/index.js  # Ensure executable
 
 # Check backups if something went wrong
 cat ~/.claude/settings.json.backup
@@ -308,7 +308,7 @@ brew install jq  # macOS
 apt-get install jq  # Linux
 
 # Check tool discovery
-bash -c 'find tools/ -mindepth 1 -maxdepth 1 -type d'
+bash -c 'find plugins/ -mindepth 1 -maxdepth 1 -type d'
 ```
 
 ## Resources

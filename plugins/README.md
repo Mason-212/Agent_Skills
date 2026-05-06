@@ -5,7 +5,7 @@ This directory contains MCP (Model Context Protocol) servers that extend Claude 
 ## Directory Structure
 
 ```
-tools/
+plugins/
 ├── README.md              # This file
 ├── pdf_to_md/            # PDF to Markdown conversion tool
 │   ├── package.json
@@ -18,7 +18,7 @@ tools/
 
 ## Tools vs Skills
 
-| Aspect | Skills (`skills/`) | Tools (`tools/`) |
+| Aspect | Skills (`skills/`) | Tools (`plugins/`) |
 |--------|-------------------|------------------|
 | **Type** | Prompt-based instructions | Executable MCP servers |
 | **Purpose** | Orchestrate existing tools | Provide new capabilities |
@@ -46,7 +46,7 @@ tools/
      "mcpServers": {
        "pdf_to_md": {
          "command": "node",
-         "args": ["/absolute/path/to/skills/tools/pdf_to_md/index.js"],
+         "args": ["/absolute/path/to/skills/plugins/pdf_to_md/index.js"],
          "env": {}
        }
      }
@@ -60,7 +60,7 @@ tools/
        "pdf_to_md": {
          "type": "stdio",
          "command": "node",
-         "args": ["/absolute/path/to/skills/tools/pdf_to_md/index.js"]
+         "args": ["/absolute/path/to/skills/plugins/pdf_to_md/index.js"]
        }
      }
    }
@@ -72,7 +72,7 @@ tools/
 
 1. **Push to GitHub**:
    ```bash
-   git add tools/
+   git add plugins/
    git commit -m "Add MCP tools"
    git push
    ```
@@ -90,7 +90,7 @@ tools/
      "mcpServers": {
        "pdf_to_md": {
          "command": "npx",
-         "args": ["-y", "github:thomaschangsf/skills#tools/pdf_to_md"],
+         "args": ["-y", "github:thomaschangsf/skills#plugins/pdf_to_md"],
          "env": {}
        }
      }
@@ -104,7 +104,7 @@ tools/
        "pdf_to_md": {
          "type": "stdio",
          "command": "npx",
-         "args": ["-y", "github:thomaschangsf/skills#tools/pdf_to_md"]
+         "args": ["-y", "github:thomaschangsf/skills#plugins/pdf_to_md"]
        }
      }
    }
@@ -122,15 +122,15 @@ Convert PDFs to Markdown with table extraction and diagram reconstruction.
 
 **Usage**: Ask Claude to "convert this PDF to markdown" and it will automatically use the tool.
 
-**See**: [tools/pdf_to_md/README.md](pdf_to_md/README.md) for details
+**See**: [plugins/pdf_to_md/README.md](pdf_to_md/README.md) for details
 
 ## Creating New Tools
 
-1. **Create tool directory**: `tools/<tool-name>/`
+1. **Create tool directory**: `plugins/<tool-name>/`
 
 2. **Add required files**:
    ```
-   tools/<tool-name>/
+   plugins/<tool-name>/
    ├── package.json       # NPM package definition
    ├── index.js          # MCP server (must be executable)
    └── README.md         # Documentation
@@ -149,7 +149,7 @@ Convert PDFs to Markdown with table extraction and diagram reconstruction.
      capabilities: { tools: {} }
    });
 
-   server.setRequestHandler("tools/list", async () => ({
+   server.setRequestHandler("plugins/list", async () => ({
      tools: [{
        name: "your_tool_name",
        description: "What your tool does",
@@ -163,7 +163,7 @@ Convert PDFs to Markdown with table extraction and diagram reconstruction.
      }]
    }));
 
-   server.setRequestHandler("tools/call", async (request) => {
+   server.setRequestHandler("plugins/call", async (request) => {
      if (request.params.name === "your_tool_name") {
        // Your tool logic here
        return {
@@ -176,11 +176,11 @@ Convert PDFs to Markdown with table extraction and diagram reconstruction.
    await server.connect(transport);
    ```
 
-4. **Make executable**: `chmod +x tools/<tool-name>/index.js`
+4. **Make executable**: `chmod +x plugins/<tool-name>/index.js`
 
 5. **Test locally**: Run `./scripts/dev_refresh_skills_and_tools.sh`
 
-6. **Share**: Push to GitHub and others can use via `github:thomaschangsf/skills#tools/<tool-name>`
+6. **Share**: Push to GitHub and others can use via `github:thomaschangsf/skills#plugins/<tool-name>`
 
 ## Maintenance
 
@@ -221,7 +221,7 @@ Check Claude Code startup logs for:
 - Check config files have correct configuration:
   - Claude Code: `~/.claude/settings.json`
   - Cursor: `~/.cursor/mcp.json`
-- Verify tool's `index.js` is executable: `chmod +x tools/<tool>/index.js`
+- Verify tool's `index.js` is executable: `chmod +x plugins/<tool>/index.js`
 
 **"Module not found" errors**:
 - Run `npm install` in the tool directory to install dependencies

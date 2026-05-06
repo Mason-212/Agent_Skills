@@ -3,7 +3,7 @@
 #
 # Unified script to:
 # 1. Install/refresh global skills package for multiple agent targets
-# 2. Install/refresh MCP tools to Claude Code settings
+# 2. Install/refresh MCP plugins to Claude Code settings
 #
 # ---------------------------------------------------------------------------
 # Skills Installation (via npx skills CLI)
@@ -15,15 +15,15 @@
 # - ~/.agents/skills/<skill-name>/
 #
 # ---------------------------------------------------------------------------
-# MCP Tools Installation
+# MCP Plugins Installation
 # ---------------------------------------------------------------------------
 #
-# MCP tools are configured in:
+# MCP plugins are configured in:
 # - ~/.claude/settings.json (Claude Code)
 # - ~/.cursor/mcp.json (Cursor)
 #
-# For local development, tools point to absolute paths.
-# For sharing, tools use: github:thomaschangsf/skills#tools/<tool-name>
+# For local development, plugins point to absolute paths.
+# For sharing, plugins use: github:thomaschangsf/skills#plugins/<plugin-name>
 #
 # ---------------------------------------------------------------------------
 # Configuration
@@ -112,33 +112,33 @@ echo "   Shared tree:  ${AGENTS_SKILLS}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# Part 2: Configure MCP Tools
+# Part 2: Configure MCP Plugins
 # ---------------------------------------------------------------------------
 
-echo "🔧 Part 2: Configuring MCP Tools"
+echo "🔧 Part 2: Configuring MCP Plugins"
 echo "─────────────────────────────────────────────────────────────────"
 
-# Find all tools in tools/ directory
-TOOLS_DIR="${REPO_ROOT}/tools"
-if [[ ! -d "${TOOLS_DIR}" ]]; then
-  echo "⚠️  No tools/ directory found. Skipping MCP tools configuration."
+# Find all plugins in plugins/ directory
+PLUGINS_DIR="${REPO_ROOT}/plugins"
+if [[ ! -d "${PLUGINS_DIR}" ]]; then
+  echo "⚠️  No plugins/ directory found. Skipping MCP plugins configuration."
   exit 0
 fi
 
-tools_found=()
-while IFS= read -r -d '' tool_dir; do
-  tool_name="$(basename "${tool_dir}")"
-  if [[ -f "${tool_dir}/index.js" && -f "${tool_dir}/package.json" ]]; then
-    tools_found+=("${tool_name}")
+plugins_found=()
+while IFS= read -r -d '' plugin_dir; do
+  plugin_name="$(basename "${plugin_dir}")"
+  if [[ -f "${plugin_dir}/index.js" && -f "${plugin_dir}/package.json" ]]; then
+    plugins_found+=("${plugin_name}")
   fi
-done < <(find "${TOOLS_DIR}" -mindepth 1 -maxdepth 1 -type d -print0)
+done < <(find "${PLUGINS_DIR}" -mindepth 1 -maxdepth 1 -type d -print0)
 
-if (( ${#tools_found[@]} == 0 )); then
-  echo "⚠️  No MCP tools found in ${TOOLS_DIR}"
+if (( ${#plugins_found[@]} == 0 )); then
+  echo "⚠️  No MCP plugins found in ${PLUGINS_DIR}"
   exit 0
 fi
 
-echo "Found ${#tools_found[@]} MCP tool(s): ${tools_found[*]}"
+echo "Found ${#plugins_found[@]} MCP plugin(s): ${plugins_found[*]}"
 echo ""
 
 # Create or update Claude Code settings
@@ -166,42 +166,42 @@ echo "  Cursor: ${CURSOR_MCP}.backup"
 mcp_config_claude=""
 mcp_config_cursor=""
 
-for tool_name in "${tools_found[@]}"; do
-  tool_dir="${TOOLS_DIR}/${tool_name}"
+for plugin_name in "${plugins_found[@]}"; do
+  plugin_dir="${PLUGINS_DIR}/${plugin_name}"
 
   if [[ "${TOOLS_MODE}" == "github" ]]; then
     # GitHub mode: use npx with GitHub URL (same for both)
     mcp_entry=$(cat <<EOF
-    "${tool_name}": {
+    "${plugin_name}": {
       "command": "npx",
-      "args": ["-y", "github:thomaschangsf/skills#tools/${tool_name}"],
+      "args": ["-y", "github:thomaschangsf/skills#plugins/${plugin_name}"],
       "env": {}
     }
 EOF
 )
     cursor_entry=$(cat <<EOF
-    "${tool_name}": {
+    "${plugin_name}": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "github:thomaschangsf/skills#tools/${tool_name}"]
+      "args": ["-y", "github:thomaschangsf/skills#plugins/${plugin_name}"]
     }
 EOF
 )
   else
     # Local mode: use direct node path
     mcp_entry=$(cat <<EOF
-    "${tool_name}": {
+    "${plugin_name}": {
       "command": "node",
-      "args": ["${tool_dir}/index.js"],
+      "args": ["${plugin_dir}/index.js"],
       "env": {}
     }
 EOF
 )
     cursor_entry=$(cat <<EOF
-    "${tool_name}": {
+    "${plugin_name}": {
       "type": "stdio",
       "command": "node",
-      "args": ["${tool_dir}/index.js"]
+      "args": ["${plugin_dir}/index.js"]
     }
 EOF
 )
@@ -247,24 +247,24 @@ else
 fi
 
 echo ""
-echo "🎯 MCP Tools configured (mode: ${TOOLS_MODE}):"
+echo "🎯 MCP Plugins configured (mode: ${TOOLS_MODE}):"
 echo ""
 echo "Claude Code (${CLAUDE_SETTINGS}):"
-for tool_name in "${tools_found[@]}"; do
+for plugin_name in "${plugins_found[@]}"; do
   if [[ "${TOOLS_MODE}" == "github" ]]; then
-    echo "   ${tool_name}: github:thomaschangsf/skills#tools/${tool_name}"
+    echo "   ${plugin_name}: github:thomaschangsf/skills#plugins/${plugin_name}"
   else
-    echo "   ${tool_name}: ${TOOLS_DIR}/${tool_name}/index.js"
+    echo "   ${plugin_name}: ${PLUGINS_DIR}/${plugin_name}/index.js"
   fi
 done
 
 echo ""
 echo "Cursor (${CURSOR_MCP}):"
-for tool_name in "${tools_found[@]}"; do
+for plugin_name in "${plugins_found[@]}"; do
   if [[ "${TOOLS_MODE}" == "github" ]]; then
-    echo "   ${tool_name}: github:thomaschangsf/skills#tools/${tool_name}"
+    echo "   ${plugin_name}: github:thomaschangsf/skills#plugins/${plugin_name}"
   else
-    echo "   ${tool_name}: ${TOOLS_DIR}/${tool_name}/index.js"
+    echo "   ${plugin_name}: ${PLUGINS_DIR}/${plugin_name}/index.js"
   fi
 done
 
@@ -277,13 +277,13 @@ echo "Skills:"
 echo "  • Cursor: Cmd+Shift+P → Developer: Reload Window"
 echo "  • Claude Code: Restart or reload to pick up ~/.claude/skills changes"
 echo ""
-echo "MCP Tools:"
+echo "MCP Plugins:"
 echo "  • Claude Code: Restart to load MCP servers from settings.json"
 echo "  • Cursor: Restart to load MCP servers from mcp.json"
 echo "  • Verify Claude Code: Check startup logs for MCP initialization"
 echo "  • Verify Cursor: Check Cursor Settings → Features → Beta"
 echo ""
-echo "To switch MCP tools mode:"
+echo "To switch MCP plugins mode:"
 echo "  • Development: TOOLS_MODE=local bash $0"
 echo "  • Sharing:     TOOLS_MODE=github bash $0"
 echo ""

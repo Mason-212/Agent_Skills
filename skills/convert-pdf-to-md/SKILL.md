@@ -5,7 +5,7 @@ description: Convert PDFs to Markdown with table extraction and diagram reconstr
 
 # Convert PDF to Markdown
 
-> **Note**: This skill provides orchestration instructions and workflow guidance. For direct execution via MCP tool, see [`tools/pdf_to_md/`](../../tools/pdf_to_md/). The MCP tool wraps the same Python script for atomic, fast execution.
+> **Note**: This skill provides orchestration instructions and workflow guidance. For direct execution via MCP tool, see [`plugins/pdf_to_md/`](../../plugins/pdf_to_md/). The MCP tool wraps the same Python script for atomic, fast execution.
 
 ## When to Use
 

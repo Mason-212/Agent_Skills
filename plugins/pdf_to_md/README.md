@@ -12,7 +12,7 @@ MCP server that converts PDFs to Markdown with table extraction and diagram reco
   "mcpServers": {
     "pdf_to_md": {
       "command": "npx",
-      "args": ["-y", "github:thomaschangsf/skills#tools/pdf_to_md"],
+      "args": ["-y", "github:thomaschangsf/skills#plugins/pdf_to_md"],
       "env": {}
     }
   }
@@ -26,7 +26,7 @@ MCP server that converts PDFs to Markdown with table extraction and diagram reco
     "pdf_to_md": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "github:thomaschangsf/skills#tools/pdf_to_md"]
+      "args": ["-y", "github:thomaschangsf/skills#plugins/pdf_to_md"]
     }
   }
 }
@@ -40,7 +40,7 @@ MCP server that converts PDFs to Markdown with table extraction and diagram reco
   "mcpServers": {
     "pdf_to_md": {
       "command": "node",
-      "args": ["/Users/thomaschang/Documents/dev/git/thomaschangsf/skills/tools/pdf_to_md/index.js"],
+      "args": ["/Users/thomaschang/Documents/dev/git/thomaschangsf/skills/plugins/pdf_to_md/index.js"],
       "env": {}
     }
   }
@@ -54,7 +54,7 @@ MCP server that converts PDFs to Markdown with table extraction and diagram reco
     "pdf_to_md": {
       "type": "stdio",
       "command": "node",
-      "args": ["/Users/thomaschang/Documents/dev/git/thomaschangsf/skills/tools/pdf_to_md/index.js"]
+      "args": ["/Users/thomaschang/Documents/dev/git/thomaschangsf/skills/plugins/pdf_to_md/index.js"]
     }
   }
 }
