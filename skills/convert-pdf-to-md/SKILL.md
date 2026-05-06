@@ -5,7 +5,21 @@ description: Convert PDFs to Markdown with table extraction and diagram reconstr
 
 # Convert PDF to Markdown
 
+> **Note**: This skill provides orchestration instructions and workflow guidance. For direct execution via MCP tool, see [`tools/pdf_to_md/`](../../tools/pdf_to_md/). The MCP tool wraps the same Python script for atomic, fast execution.
+
 ## When to Use
+
+**Use this skill when:**
+- You need **guided workflow** with decision trees and best practices
+- The MCP tool is not configured or available
+- You want to **understand the conversion process** before automating
+
+**Use the MCP tool when:**
+- You have the tool configured in Claude Code/Cursor settings
+- You want **immediate, atomic execution** ("convert this PDF now")
+- The Python script and dependencies are already set up
+
+## Original Use Cases
 
 - The user asks to **convert a PDF to Markdown** (or `.md`)
 - The user wants to **extract tables** from a PDF
