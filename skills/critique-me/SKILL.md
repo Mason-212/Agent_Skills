@@ -23,7 +23,7 @@ Read **only** the selected files under [resources/rubrics/](resources/rubrics/) 
 
 ### When to skip the menu
 
-If the user **already** specifies rubrics in their message (ids, names, or numbers—e.g. `Rubrics: 1,3`, `stress-test and anti-ai-slop`, `all rubrics`, `1–5`, `6`), use that set and proceed.
+If the user **already** specifies rubrics in their message (ids, names, or numbers—e.g. `Rubrics: 1,3`, `stress-test and anti-ai-slop`, `all rubrics`, `1–6`, `7`), use that set and proceed.
 
 ### Multi-select menu (show when rubrics are not already specified)
 
@@ -36,17 +36,18 @@ Present **once** before reading rubric files:
 | 3 | `anti-ai-slop` | Anti–AI slop (substance / value density) |
 | 4 | `code-quality` | Code quality |
 | 5 | `ml-design` | ML design |
-| **6** | *(all)* | **All rubrics (1–5)** — same as selecting every row above |
+| 6 | `interface-boundary-integrity` | Interface and boundary integrity |
+| **7** | *(all)* | **All rubrics (1–6)** — same as selecting every row above |
 
-**Shortcuts (equivalent to choosing 6):** `Rubrics: all`, `Rubrics: 1-5`, `Rubrics: 1–5` (en dash), or `Rubrics: 6`.
+**Shortcuts (equivalent to choosing 7):** `Rubrics: all`, `Rubrics: 1-6`, `Rubrics: 1–6` (en dash), or `Rubrics: 7`.
 
 **Other shortcuts:** “**Truth and evidence**” = **1 + 2** only (not all rubrics).
 
-**Reply format (plain chat):** `Rubrics: 1,2,3` or `Rubrics: 2,4` or `Rubrics: all`. User may pick **any non-empty subset** of **1–5**, or **6 / all** for the full set.
+**Reply format (plain chat):** `Rubrics: 1,2,3` or `Rubrics: 2,4` or `Rubrics: all`. User may pick **any non-empty subset** of **1–6**, or **7 / all** for the full set.
 
-**AskQuestion:** When the tool is available, use **one** multi-select question listing options **1–6** with `allow_multiple: true`. Selecting **6** should mean “include all of 1–5” (if the UI cannot express that, treat a dedicated “All (1–5)” option as selecting 1–5).
+**AskQuestion:** When the tool is available, use **one** multi-select question listing options **1–7** with `allow_multiple: true`. Selecting **7** should mean “include all of 1–6” (if the UI cannot express that, treat a dedicated “All (1–6)” option as selecting 1–6).
 
-**Suggested copy in the prompt (optional hint to the user):** “Typical first pass: `Rubrics: 1,2,3` or `Rubrics: all` for everything including code and ML lenses.”
+**Suggested copy in the prompt (optional hint to the user):** “Typical first pass: `Rubrics: 1,2,3,6` or `Rubrics: all` for everything including contract/boundary checks.”
 
 **After selection:** If **4** is included but there is **no code** in the artifact set, **warn** and either drop **4** or ask for a code path/snippet before critiquing.
 
@@ -70,24 +71,25 @@ When the user points at a **directory** or many files:
 ## Procedure
 
 1. **Infer artifacts** from the user text (paths → read; else conversation).
-2. **Resolve rubrics:** if the user already listed them in the message → use that set. **Otherwise** show the **multi-select menu (§ Rubrics)** and **stop until they reply** with `Rubrics: …` (or AskQuestion answers mapped to numbers). **Do not** silently apply all rubrics or auto-add 4/5 without user selection—except the user chose **6** / **all** / **1–5**.
+2. **Resolve rubrics:** if the user already listed them in the message → use that set. **Otherwise** show the **multi-select menu (§ Rubrics)** and **stop until they reply** with `Rubrics: …` (or AskQuestion answers mapped to numbers). **Do not** silently apply all rubrics or auto-add 4/5/6 without user selection—except the user chose **7** / **all** / **1–6**.
 3. If **artifact** still ambiguous, one follow-up (see § Artifacts).
 4. **Validate:** if **code-quality** (4) is in the set but there is no code in scope, warn—drop 4 or ask for a path/snippet.
-5. **Read** each selected `resources/rubrics/<id>.md` (ids **1–5** only; **6** expands to all five files).
+5. **Read** each selected `resources/rubrics/<id>.md` (ids **1–6** only; **7** expands to all six files).
 6. **Read** artifact corpus (files / dirs within caps; thread content as given).
 7. **Deliver** the critique using the output format below. Be direct; no filler.
 
 ## Output format
 
-Use these sections **in order**. Omit rubric sections that were not selected. **Section order matches rubric numbers 1–5.**
+Use these sections **in order**. Omit rubric sections that were not selected. **Section order matches rubric numbers 1–6.**
 
-1. **Framing** — Goal, constraints, **rubrics used** (numbers or ids; note if **6 / all**), **artifacts** (conversation and/or paths read; note if caps applied).
+1. **Framing** — Goal, constraints, **rubrics used** (numbers or ids; note if **7 / all**), **artifacts** (conversation and/or paths read; note if caps applied).
 2. **Stress-test decisions** — if **1** selected.
 3. **Blind spots and coverage** — if **2** selected.
 4. **Anti–AI slop** — if **3** selected.
 5. **Code quality** — if **4** selected; else omit (or one line “N/A”).
 6. **ML design** — if **5** selected.
-7. **Recommendations** — numbered, smallest valuable change first; tag **must-fix** vs **later** when useful.
+7. **Interface and boundary integrity** — if **6** selected.
+8. **Recommendations** — numbered, smallest valuable change first; tag **must-fix** vs **later** when useful.
 
 **Per finding:** **claim → why it matters → evidence** (quote or `path:line`). **Primary rubric** per finding: assertions under stress-test; silences under blind spots; hollow density under anti–AI slop; at most one “see also” to another rubric.
 
@@ -100,3 +102,4 @@ Use these sections **in order**. Omit rubric sections that were not selected. **
 - [resources/rubrics/anti-ai-slop.md](resources/rubrics/anti-ai-slop.md)
 - [resources/rubrics/code-quality.md](resources/rubrics/code-quality.md)
 - [resources/rubrics/ml-design.md](resources/rubrics/ml-design.md)
+- [resources/rubrics/interface-boundary-integrity.md](resources/rubrics/interface-boundary-integrity.md)
