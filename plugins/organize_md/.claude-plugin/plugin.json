@@ -1,0 +1,19 @@
+{
+  "name": "organize-md",
+  "version": "1.0.0",
+  "description": "Organize markdown files: move images to companion directories and add sequential heading numbers",
+  "author": {
+    "name": "Thomas Chang"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomaschangsf/skills.git",
+    "directory": "plugins/organize_md"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "python": ">=3.8"
+  }
+}
