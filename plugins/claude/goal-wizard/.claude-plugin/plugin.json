@@ -5,7 +5,7 @@
   "author": "Thomas Chang",
   "repository": "https://github.com/thomaschangsf/skills",
   "skills": [
-    "goal-sandbox"
+    "goal-wizard"
   ],
   "dependencies": {
     "python": ">=3.8",

@@ -220,7 +220,40 @@ plugins/
 
 ---
 
-## Troubleshooting
+## Testing
+
+### goal-wizard Test Suite
+
+**Automated test script** for goal-wizard plugin that exercises all verification types:
+
+```bash
+# 1. Sync and restart
+./scripts/dev_refresh_skills_and_tools.sh
+# Restart Claude Code
+
+# 2. Run interactive test suite
+./plugins/claude/goal-wizard/test_goal_wizard.sh
+```
+
+**What it tests**:
+- ✅ Smoke test (file creation)
+- ✅ Structural verification (type hints, docstrings)
+- ✅ Behavioral verification (existing tests)
+- ✅ Safety guardrails
+
+**Features**:
+- Interactive guidance through each test
+- Automated test file creation
+- Shows exact commands to run in Claude Code
+- Automated result verification
+- Color-coded pass/fail output
+- Test summary with pass/fail counts
+
+**See also**: `plugins/claude/goal-wizard/TEST_PROCEDURE.md` for detailed manual test procedures
+
+---
+
+### Test Skill
 
 ### Skill Not Appearing
 ```bash

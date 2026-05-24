@@ -1,11 +1,11 @@
 ---
-name: goal-sandbox
-description: Execute safe, git-isolated autonomous tasks with interactive setup wizard for spec, verification, and guardrails
+name: goal-wizard
+description: Interactive wizard for /goal - guides setup with verification strategies and safety guardrails
 ---
 
-# Goal Sandbox
+# Goal Wizard
 
-Execute a safe, git-isolated autonomous task with an interactive setup wizard that ensures proper specification, verification strategy, and safety guardrails before invoking Claude's `/goal` command.
+Interactive wizard that guides you through autonomous task execution with `/goal`. Ensures proper specification, verification strategy, and safety guardrails before invoking Claude's `/goal` command.
 
 ## When to Use
 
@@ -34,14 +34,29 @@ Then ask: **"What would you like to build or fix next?"**
 If the user has described a task but no verification method:
 1. Acknowledge the task
 2. Ask: **"What local test suite, linter, or script should I run to verify that my changes are correct and working?"**
-3. Wait for their response before proceeding
+3. After receiving verification method, use `AskUserQuestion` to classify verification type:
+
+```
+AskUserQuestion:
+  question: "What type of verification is this?"
+  header: "Verify type"
+  options:
+    - label: "Behavioral"
+      description: "Tests actual runtime behavior (runs code, checks output)"
+    - label: "Structural"
+      description: "Checks code structure without execution (AST, syntax, types)"
+```
+
+4. Record verification type (behavioral or structural)
+5. Wait for their response before proceeding
 
 ### CRITERIA 3: Complete Request
-If both task and verification are present:
+If both task, verification, and verification type are present:
 1. Extract target files (if specified)
 2. Extract verification script
-3. Set default guardrail: **10 max turns** (unless user specified different)
-4. Proceed to Phase 1
+3. Record verification type
+4. Set default guardrail: **10 max turns** (unless user specified different)
+5. Proceed to Phase 1
 
 ---
 
@@ -74,10 +89,25 @@ Before executing, present a clear plan:
 1. Print a bulleted summary to the user:
    - **Target files** you intend to modify
    - **Test script** you will run for verification
+   - **Verification type** (behavioral or structural)
    - **Turn limit** you're operating under
    - **Guardrails** in effect (staged files protected, temp dir, etc.)
 
-2. Ask: **"Does this plan look correct? Should I proceed?"**
+2. Use `AskUserQuestion` to confirm plan:
+
+```
+AskUserQuestion:
+  question: "Does this plan look correct?"
+  header: "Confirm"
+  options:
+    - label: "Yes, proceed"
+      description: "Start autonomous execution with /goal"
+    - label: "No, modify plan"
+      description: "I want to change something first"
+```
+
+3. If "Yes, proceed", continue to Phase 3 (invoke /goal)
+4. If "No, modify plan", ask what to change and update accordingly
 
 3. Once approved, formulate execution path and invoke `/goal` with the task
 
