@@ -1,0 +1,14 @@
+name: staged_files_isolation
+display_name: "Never modify staged files"
+description: "Treats staged files as read-only to preserve user's prepared commit"
+
+triggers:
+  always_suggest: true
+
+config_params: []
+
+enforcer: "staged_files_check"
+check_timing: before_edit
+
+plain_language: "Prevents modifications to files that are already staged in git"
+why_it_matters: "Preserves your prepared commits and avoids mixing changes"

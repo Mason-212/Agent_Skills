@@ -1,0 +1,18 @@
+name: turn_limit
+display_name: "Auto-rollback after max attempts"
+description: "Limits modification iterations and automatically reverts changes if limit reached"
+
+triggers:
+  always_suggest: true
+
+config_params:
+  - name: max_turns
+    type: integer
+    prompt: "Maximum number of modification attempts?"
+    default: 10
+
+enforcer: "turn_limit_check"
+check_timing: per_iteration
+
+plain_language: "Stops after N failed verification attempts and reverts all changes"
+why_it_matters: "Prevents infinite loops and runaway execution"

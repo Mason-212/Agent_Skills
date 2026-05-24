@@ -1,0 +1,36 @@
+name: api_response
+display_name: "API returns expected HTTP status"
+type: behavioral
+
+triggers:
+  keywords:
+    - "api"
+    - "endpoint"
+    - "http"
+    - "rest"
+    - "web service"
+  file_patterns:
+    - "**/api/*.py"
+    - "**/routes/*.py"
+    - "**/handlers/*.py"
+  goal_types:
+    - "add feature"
+    - "fix bug"
+
+template: "api_response_template.py"
+required_params:
+  - endpoint
+  - expected_status
+optional_params:
+  method: "GET"
+  timeout: 5
+  base_url: "http://localhost:8000"
+
+confidence_boost: 0.7
+
+plain_language: "Tests API endpoint returns correct HTTP status code"
+why_it_matters: "Verifies API behavior matches requirements"
+
+examples:
+  - "Add /api/convert endpoint"
+  - "Fix the authentication API"

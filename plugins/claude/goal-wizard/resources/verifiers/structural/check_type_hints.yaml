@@ -1,0 +1,36 @@
+name: check_type_hints
+display_name: "All functions have type hints"
+type: structural
+
+# When to suggest this verification
+triggers:
+  keywords:
+    - "type hint"
+    - "type annotation"
+    - "add types"
+    - "typing"
+    - "refactor"
+  file_patterns:
+    - "**/*.py"
+  goal_types:
+    - "refactor"
+    - "add feature"
+
+# Template configuration
+template: "check_type_hints_template.py"
+required_params:
+  - target_file
+optional_params:
+  strict: false
+
+# Scoring for suggestion relevance
+confidence_boost: 0.5
+
+# User-facing documentation
+plain_language: "Uses mypy/AST to check all functions have return type hints"
+why_it_matters: "Catches type errors before runtime and improves code maintainability"
+
+# Examples
+examples:
+  - "Add type hints to all functions in billing.py"
+  - "Refactor the module with proper typing"

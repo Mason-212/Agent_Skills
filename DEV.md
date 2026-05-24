@@ -1,0 +1,328 @@
+# Developer Guide
+
+Development workflow for skills and MCP plugins.
+
+---
+
+## Daily Workflow
+
+### 1. Edit
+```bash
+# Edit skills or plugins
+vim skills/my-skill/SKILL.md
+vim plugins/all/my-plugin/index.js
+```
+
+### 2. Sync
+```bash
+# From repo root
+./scripts/dev_refresh_skills_and_tools.sh
+```
+
+**What it does**:
+- Auto-discovers skills from `skills/*/SKILL.md`
+- Auto-discovers MCP plugins from `plugins/{all,claude,cursor}/*/`
+- Installs to `~/.claude/` and `~/.cursor/`
+- Agent-scoped (respects directory structure)
+
+### 3. Restart
+- **Claude Code**: Restart or `/reload-plugins`
+- **Cursor**: Cmd+Shift+P → Developer: Reload Window
+
+---
+
+## Scripts Reference
+
+### `dev_refresh_skills_and_tools.sh`
+Sync everything (skills + plugins) to local agents.
+
+```bash
+# Normal (local development)
+./scripts/dev_refresh_skills_and_tools.sh
+
+# GitHub mode (for sharing)
+TOOLS_MODE=github ./scripts/dev_refresh_skills_and_tools.sh
+
+# Target specific agents
+SKILLS_AGENTS="cursor claude-code" ./scripts/dev_refresh_skills_and_tools.sh
+```
+
+---
+
+### `dev_refresh_skills_and_tools_and_claudemd.sh`
+Same as above + copies `CLAUDE_USER.md` to `~/.claude/CLAUDE.md`.
+
+```bash
+./scripts/dev_refresh_skills_and_tools_and_claudemd.sh
+```
+
+---
+
+## Adding New Skill
+
+```bash
+# 1. Create skill directory
+mkdir -p skills/my-skill
+
+# 2. Create SKILL.md
+cat > skills/my-skill/SKILL.md << 'EOF'
+---
+name: my-skill
+description: Does something useful
+---
+
+# My Skill
+
+When the user asks for X:
+1. Do this
+2. Then that
+3. Finally this
+EOF
+
+# 3. Optional: Add resources
+mkdir -p skills/my-skill/resources
+# Add helper scripts, templates, etc.
+
+# 4. Sync
+./scripts/dev_refresh_skills_and_tools.sh
+
+# 5. Test
+# Claude Code: /reload-plugins
+# In conversation: /my-skill
+```
+
+---
+
+## Adding New MCP Plugin
+
+### Universal Plugin (works everywhere)
+```bash
+# 1. Create in plugins/all/
+mkdir -p plugins/all/my-tool
+cd plugins/all/my-tool
+
+# 2. Initialize
+npm init -y
+npm install @modelcontextprotocol/sdk
+
+# 3. Create MCP server
+cat > index.js << 'EOF'
+#!/usr/bin/env node
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  ListToolsRequestSchema,
+  CallToolRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+
+const server = new Server(
+  {
+    name: "my-tool",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// List tools
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: [
+    {
+      name: "my_action",
+      description: "Does something useful",
+      inputSchema: {
+        type: "object",
+        properties: {
+          param: {
+            type: "string",
+            description: "Parameter description",
+          },
+        },
+        required: ["param"],
+      },
+    },
+  ],
+}));
+
+// Handle tool calls
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  if (name === "my_action") {
+    // Do something with args.param
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Result: ${args.param}`,
+        },
+      ],
+    };
+  }
+
+  throw new Error(`Unknown tool: ${name}`);
+});
+
+// Start server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
+
+main().catch((error) => {
+  console.error("Server error:", error);
+  process.exit(1);
+});
+EOF
+
+# 4. Make executable
+chmod +x index.js
+
+# 5. Sync
+cd ../../..
+./scripts/dev_refresh_skills_and_tools.sh
+
+# 6. Restart agent
+# Tools should now be available
+```
+
+---
+
+### Claude-Specific Plugin
+```bash
+# Same as above, but use plugins/claude/ instead of plugins/all/
+mkdir -p plugins/claude/my-tool
+# ... rest same ...
+```
+
+**When to use `plugins/claude/`**: Plugin uses Claude Code-specific features (e.g., `/goal` command)
+
+---
+
+## Agent Scoping
+
+Place plugins in the right directory based on compatibility:
+
+```
+plugins/
+  ├── all/       → Works in ALL agents (Claude Code + Cursor)
+  ├── claude/    → Claude Code only (uses /goal, etc.)
+  └── cursor/    → Cursor only
+```
+
+**Decision tree**:
+- Uses Claude Code-specific features? → `plugins/claude/`
+- Uses Cursor-specific features? → `plugins/cursor/`
+- Works everywhere? → `plugins/all/`
+
+---
+
+## Troubleshooting
+
+### Skill Not Appearing
+```bash
+# 1. Verify SKILL.md exists
+ls -la skills/my-skill/SKILL.md
+
+# 2. Re-sync
+./scripts/dev_refresh_skills_and_tools.sh
+
+# 3. Reload agent
+# Claude Code: /reload-plugins
+# Cursor: Reload Window
+
+# 4. Check installed
+npx skills list -g | grep my-skill
+```
+
+---
+
+### MCP Plugin Not Loading
+```bash
+# 1. Check configuration
+cat ~/.claude/settings.json | jq '.mcpServers."my-tool"'
+
+# 2. Test MCP server manually
+node plugins/all/my-tool/index.js
+# Should start without errors, wait for input
+
+# 3. Check Claude Code startup logs for MCP errors
+
+# 4. Verify dependencies installed
+cd plugins/all/my-tool
+npm install
+```
+
+---
+
+### Wrong Agent Scope
+```bash
+# Move to correct directory
+mv plugins/all/my-tool plugins/claude/
+
+# Re-sync
+./scripts/dev_refresh_skills_and_tools.sh
+
+# Restart agent
+```
+
+---
+
+## Environment Variables
+
+```bash
+# Development mode (local paths)
+TOOLS_MODE=local ./scripts/dev_refresh_skills_and_tools.sh
+
+# Sharing mode (GitHub URLs)
+TOOLS_MODE=github ./scripts/dev_refresh_skills_and_tools.sh
+
+# Target specific agents
+SKILLS_AGENTS="cursor claude-code" ./scripts/dev_refresh_skills_and_tools.sh
+
+# Use local repo for unpushed changes (auto-detected if run from repo)
+SKILLS_PACKAGE_PATH="$(pwd)" ./scripts/dev_refresh_skills_and_tools.sh
+```
+
+---
+
+## Common Commands
+
+```bash
+# Sync everything
+./scripts/dev_refresh_skills_and_tools.sh
+
+# List skills
+npx skills list -g
+
+# Remove old skill
+npx skills remove -g old-skill-name -y
+
+# Check MCP config
+cat ~/.claude/settings.json | jq '.mcpServers'
+
+# Test MCP server
+node plugins/all/my-tool/index.js
+
+# Find skill files
+find skills/ -name "SKILL.md"
+
+# Find MCP plugins
+find plugins/ -name "index.js"
+```
+
+---
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Sync all | `./scripts/dev_refresh_skills_and_tools.sh` |
+| Reload (Claude) | `/reload-plugins` |
+| Reload (Cursor) | Cmd+Shift+P → Reload Window |
+| List skills | `npx skills list -g` |
+| Check MCP | `cat ~/.claude/settings.json \| jq .mcpServers` |
+| Test MCP | `node plugins/all/my-tool/index.js` |

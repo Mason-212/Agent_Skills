@@ -1,0 +1,35 @@
+name: existing_tests
+display_name: "Existing tests still pass"
+type: behavioral
+
+triggers:
+  keywords:
+    - "refactor"
+    - "change"
+    - "modify"
+    - "update"
+    - "fix"
+  file_patterns:
+    - "**/*.py"
+    - "**/*.js"
+    - "**/*.ts"
+  goal_types:
+    - "refactor"
+    - "fix bug"
+    - "add feature"
+
+template: "existing_tests_template.py"
+required_params:
+  - test_command
+optional_params:
+  timeout: 60
+
+confidence_boost: 0.9
+
+plain_language: "Runs existing test suite to prevent regressions"
+why_it_matters: "Ensures changes don't break current functionality"
+
+examples:
+  - "Refactor the billing module"
+  - "Fix the auth bug"
+  - "Add multi-currency support"

@@ -1,0 +1,29 @@
+name: check_docstrings
+display_name: "All functions have docstrings"
+type: structural
+
+triggers:
+  keywords:
+    - "docstring"
+    - "documentation"
+    - "document functions"
+    - "add docs"
+  file_patterns:
+    - "**/*.py"
+  goal_types:
+    - "refactor"
+    - "improve"
+
+template: "check_docstrings_template.py"
+required_params:
+  - target_file
+optional_params: {}
+
+confidence_boost: 0.4
+
+plain_language: "Checks that all functions have docstrings using AST parsing"
+why_it_matters: "Improves code documentation and maintainability"
+
+examples:
+  - "Add docstrings to all functions"
+  - "Document the API module"

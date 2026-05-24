@@ -1,0 +1,14 @@
+{
+  "goal": "Add type hints to billing.py",
+  "verifications": [
+    {
+      "name": "check_type_hints",
+      "type": "structural",
+      "label": "All functions have type hints",
+      "manifest": "resources/verifiers/structural/check_type_hints.yaml",
+      "params": {
+        "target_file": "billing.py"
+      }
+    }
+  ]
+}

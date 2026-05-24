@@ -1,0 +1,14 @@
+{
+  "name": "goal-wizard",
+  "version": "0.1.0",
+  "description": "Interactive wizard for /goal command - guided workflow with verification and safety guardrails",
+  "author": "Thomas Chang",
+  "repository": "https://github.com/thomaschangsf/skills",
+  "skills": [
+    "goal-sandbox"
+  ],
+  "dependencies": {
+    "python": ">=3.8",
+    "packages": ["pyyaml"]
+  }
+}

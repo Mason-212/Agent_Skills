@@ -1,0 +1,33 @@
+name: hypothesis_invariant
+display_name: "Property holds for all inputs"
+type: property
+
+triggers:
+  keywords:
+    - "always"
+    - "never"
+    - "for all"
+    - "invariant"
+    - "property"
+    - "idempotent"
+  file_patterns:
+    - "**/*.py"
+  goal_types:
+    - "add feature"
+    - "fix bug"
+
+template: "hypothesis_invariant_template.py"
+required_params:
+  - function_name
+  - property_check
+optional_params:
+  max_examples: 100
+
+confidence_boost: 0.6
+
+plain_language: "Uses hypothesis to verify function property holds for many random inputs"
+why_it_matters: "Catches edge cases that unit tests might miss"
+
+examples:
+  - "The function should always return sorted results"
+  - "Conversion should never return negative values"

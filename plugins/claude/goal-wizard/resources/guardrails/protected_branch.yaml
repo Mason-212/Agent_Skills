@@ -1,0 +1,18 @@
+name: protected_branch
+display_name: "Stop if on main/master/develop branch"
+description: "Prevents execution on protected branches to avoid accidental changes to production code"
+
+triggers:
+  keywords:
+    - "refactor"
+    - "change"
+    - "modify"
+  always_suggest: true
+
+config_params: []
+
+enforcer: "protected_branch_check"
+check_timing: pre_execution
+
+plain_language: "Checks current branch and stops if on main, master, or develop"
+why_it_matters: "Prevents accidental changes to protected branches"
