@@ -49,12 +49,22 @@ SKILLS_AGENTS="cursor claude-code" ./scripts/dev_refresh_skills_and_tools.sh
 
 ---
 
-### `dev_refresh_skills_and_tools_and_claudemd.sh`
-Same as above + copies `CLAUDE_USER.md` to `~/.claude/CLAUDE.md`.
+### `dev_refresh_claude_cursor_md.sh`
+Refreshes AI behavioral guidelines across Claude and Cursor. Run this when you update `use_cases/claude/CLAUDE_USER.md`.
 
 ```bash
-./scripts/dev_refresh_skills_and_tools_and_claudemd.sh
+./scripts/dev_refresh_claude_cursor_md.sh
 ```
+
+**What it does**:
+- Copies `CLAUDE_USER.md` → `~/.claude/CLAUDE.md` (Claude global config)
+- Merges guidelines into `~/.cursorrules` (Cursor global config)
+- Optionally updates per-project Cursor config:
+  - If `AGENTS.md` is not git-tracked → appends to `AGENTS.md`
+  - If `AGENTS.md` is git-tracked → writes `.cursor/rules/personal-guidelines.mdc` + gitignores it locally (via `.git/info/exclude`)
+- Optionally runs headless verification via `claude` and `cursor-agent` CLIs
+
+**Golden source**: `use_cases/claude/CLAUDE_USER.md`
 
 ---
 

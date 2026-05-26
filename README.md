@@ -74,8 +74,11 @@ plugins/                   # MCP plugins (tools)
   └── cursor/              # Cursor only
 
 scripts/
-  ├── dev_refresh_skills_and_tools.sh
-  └── dev_refresh_skills_and_tools_and_claudemd.sh
+  ├── dev_refresh_skills_and_tools.sh       # Sync skills + plugins to local agents
+  └── dev_refresh_claude_cursor_md.sh       # Refresh Claude/Cursor behavioral guidelines
+
+use_cases/claude/
+  └── CLAUDE_USER.md                        # Golden source for AI behavioral guidelines
 ```
 
 **Agent scoping**: Place plugins in `all/`, `claude/`, or `cursor/` based on compatibility.
