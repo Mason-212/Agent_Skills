@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+
+// Import tool handlers
+import * as organizeMd from "./tools/organize_md.js";
+import * as pdfToMd from "./tools/pdf_to_md.js";
+
+const TOOL_HANDLERS = [organizeMd, pdfToMd];
+
+const server = new Server(
+  {
+    name: "thomaschangsf-skills-mcp",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Aggregate all tools from handlers
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  const allTools = TOOL_HANDLERS.flatMap(handler => handler.listTools());
+  return { tools: allTools };
+});
+
+// Route tool calls to appropriate handler
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const toolName = request.params.name;
+
+  for (const handler of TOOL_HANDLERS) {
+    const handlerTools = handler.listTools().map(t => t.name);
+    if (handlerTools.includes(toolName)) {
+      return await handler.handleCall(request);
+    }
+  }
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Unknown tool: ${toolName}`,
+      },
+    ],
+    isError: true,
+  };
+});
+
+// Start server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("thomaschangsf-skills MCP server running on stdio");
+  const availableTools = TOOL_HANDLERS.flatMap(h => h.listTools()).map(t => t.name);
+  console.error(`Available tools: ${availableTools.join(", ")}`);
+}
+
+main().catch((error) => {
+  console.error("Fatal error:", error);
+  process.exit(1);
+});

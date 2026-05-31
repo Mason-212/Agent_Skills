@@ -68,6 +68,169 @@ Refreshes AI behavioral guidelines across Claude and Cursor. Run this when you u
 
 ---
 
+### `dev_refresh_skills_and_tools_for_claude_desktop.sh` 🆕
+Build unified MCP server with **BOTH tools AND skills (as prompts)**.
+
+**PRIMARY USE CASE: Claude Desktop**
+- Claude Desktop doesn't support skills directory (`~/.claude/skills/`)
+- MCP prompts are the ONLY way to get skills in Claude Desktop
+- Also works for Claude Code and Cursor (alternative approach)
+
+```bash
+# Manual setup (default) - Shows copy-paste config
+./scripts/dev_refresh_skills_and_tools_for_claude_desktop.sh
+
+# Auto-configure (requires jq) - Automatically updates config files
+./scripts/dev_refresh_skills_and_tools_for_claude_desktop.sh --auto-configure
+```
+
+**What it does**:
+1. Auto-discovers all skills from `skills/*/SKILL.md`
+2. Generates prompt handlers for each skill
+3. Builds enhanced unified server with:
+   - **Tools**: organize_markdown, convert_pdf_to_md
+   - **Prompts**: git-commit, pr-review, critique-me, etc. (all 16 skills)
+4. **Configuration** (choose one):
+   - **Manual (default)**: Shows copy-paste ready config for all 3 agents
+   - **Auto-configure**: Uses `jq` to automatically update config files (creates backups)
+
+**Auto-configure requirements**:
+- `jq` must be installed: `brew install jq` (macOS) or `apt-get install jq` (Linux)
+- Automatically updates:
+  - Claude Desktop: `~/Library/Application Support/Claude/claude_desktop_config.json`
+  - Claude Code: `~/.claude/settings.json`
+  - Cursor: `~/.cursor/mcp.json`
+- Creates timestamped backups before modifying files
+
+---
+
+## Two Approaches: Traditional vs Claude Desktop Script
+
+| Aspect | Traditional Script | Claude Desktop Script |
+|--------|-------------------|----------------------|
+| **Script** | `dev_refresh_skills_and_tools.sh` | `dev_refresh_skills_and_tools_for_claude_desktop.sh` |
+| **Skills delivery** | Copy to `~/.claude/skills/` | Serve via MCP prompts |
+| **Tools delivery** | Individual MCP plugins | Unified MCP server |
+| **Claude Desktop** | ❌ Skills don't work | ✅ Everything works |
+| **Setup** | Automatic (script configures) | Manual (default) or Auto (`--auto-configure`) |
+| **Configuration** | Always automatic | Choice: manual copy-paste or auto with flag |
+| **Use when** | Claude Code, Cursor | **Claude Desktop** (primary), or any agent |
+
+### Configuration Modes Comparison
+
+| Mode | Command | How It Works | Safety |
+|------|---------|--------------|--------|
+| **Traditional** | `./scripts/dev_refresh_skills_and_tools.sh` | Always auto-configures | ✅ Proven, tested |
+| **Manual** | `./scripts/dev_refresh_skills_and_tools_for_claude_desktop.sh` | Shows config, you copy-paste | ✅ Safest (you control) |
+| **Auto-configure** | `./scripts/...for_claude_desktop.sh --auto-configure` | Uses `jq` to auto-update | ⚠️ Creates backups first |
+
+**Recommendation**:
+- **Claude Desktop users**: Use Claude Desktop script with `--auto-configure` (ONLY option for skills)
+- **Claude Code/Cursor users**: Use traditional script (simpler, automatic)
+- **Developers wanting single source**: Use Claude Desktop script with `--auto-configure`
+- **Safety-conscious users**: Use manual mode (default), review config before adding
+
+---
+
+## Using the Unified MCP Server (Local Development)
+
+The unified MCP server consolidates all MCP tools into a single entry point for easier local development.
+
+### Quick Setup
+
+```bash
+# 1. Build unified server (runs automatically with refresh script)
+./scripts/dev_refresh_skills_and_tools.sh
+
+# 2. Get absolute path
+echo "$(pwd)/build/index.js"
+
+# 3. Configure your agent (choose one below)
+```
+
+### Configuration by Agent
+
+#### Claude Code
+Edit `~/.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "thomaschangsf-custom-skills": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/skills/build/index.js"],
+      "env": {}
+    }
+  }
+}
+```
+Restart Claude Code or run `/reload-plugins`
+
+#### Claude Desktop (Mac)
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "thomaschangsf-custom-skills": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/skills/build/index.js"]
+    }
+  }
+}
+```
+Restart Claude Desktop
+
+#### Cursor
+Edit `~/.cursor/mcp.json`:
+```json
+{
+  "mcpServers": {
+    "thomaschangsf-custom-skills": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/skills/build/index.js"]
+    }
+  }
+}
+```
+Reload window: Cmd+Shift+P → Developer: Reload Window
+
+### Benefits
+
+- ✅ **Single configuration** - One entry instead of multiple plugins
+- ✅ **No network dependency** - Works with local clone, bypasses npm caching
+- ✅ **All tools available** - organize_markdown, convert_pdf_to_md in one server
+- ✅ **Easier debugging** - Edit handler, restart agent, test immediately
+
+### Available Tools
+
+- `organize_markdown` - Organize markdown: move images, number headings
+- `convert_pdf_to_md` - Convert PDF to Markdown with table extraction
+
+### Alternative: Individual Plugins
+
+The refresh script also configures individual plugins automatically (backward compatible):
+```bash
+# This still works and configures each plugin separately
+./scripts/dev_refresh_skills_and_tools.sh
+```
+
+Individual plugins are auto-discovered from:
+- `plugins/all/*` - Configured in ALL agents
+- `plugins/claude/*` - Claude Code only
+- `plugins/cursor/*` - Cursor only
+
+**Choose unified server for**:
+- Local development (faster iteration)
+- Single configuration simplicity
+- Bypassing network/npm issues
+
+**Choose individual plugins for**:
+- Production GitHub-based distribution
+- Selective tool installation
+- Agent-specific tools
+
+---
+
 ## Adding New Skill
 
 ```bash

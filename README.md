@@ -85,6 +85,41 @@ use_cases/claude/
 
 ---
 
+## Unified MCP Server (Recommended for Local Development)
+
+For local development, use the unified MCP server to access all tools through a single entry point:
+
+```bash
+# 1. Install build dependencies
+cd build && npm install && cd ..
+
+# 2. Get absolute path
+echo "$(pwd)/build/index.js"
+
+# 3. Configure Claude Code (~/.claude/settings.json)
+{
+  "mcpServers": {
+    "thomaschangsf-custom-skills": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/FROM/STEP/2"],
+      "env": {}
+    }
+  }
+}
+
+# 4. Restart Claude Code
+```
+
+**Benefits over individual plugins**:
+- ✅ Single configuration entry
+- ✅ No network/npm caching issues  
+- ✅ All tools available immediately
+- ✅ Easier local development
+
+See `build/README.md` for details.
+
+---
+
 ## Available Skills
 
 ### Git & GitHub
