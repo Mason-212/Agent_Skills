@@ -21,3 +21,9 @@ node_modules/
 *.zip
 *.tar.gz
 .test/
+
+# Streamlit Pattern C runs (local artifacts)
+apps/multi_agent_generator_evaluator_loop/runs/
+
+# uv / local venv under apps/
+apps/.venv/
