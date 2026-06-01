@@ -75,11 +75,83 @@ AGENTS_SKILLS="${HOME}/.agents/skills"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# Declare and initialize associative arrays at script level (needed for Parts 2 & 3)
-declare -A mcp_plugins_claude=()  # MCP plugins for Claude Code
-declare -A mcp_plugins_cursor=()  # MCP plugins for Cursor
-declare -A cc_plugins_claude=()   # Claude Code plugins for Claude Code
-declare -A cc_plugins_cursor=()   # Claude Code plugins for Cursor
+create_record_file() {
+  mktemp "${TMPDIR:-/tmp}/dev_refresh_records.XXXXXX"
+}
+
+append_record() {
+  local target_file="$1"
+  local record_name="$2"
+  local record_path="$3"
+
+  printf '%s\t%s\n' "${record_name}" "${record_path}" >> "${target_file}"
+}
+
+dedupe_last_wins() {
+  local target_file="$1"
+  local tmp_file
+
+  tmp_file="$(create_record_file)"
+
+  awk -F '\t' '
+    {
+      order[++n] = $1
+      record[$1] = $0
+    }
+    END {
+      for (i = n; i >= 1; i--) {
+        name = order[i]
+        if (!(name in seen)) {
+          seen[name] = 1
+          keep[++k] = name
+        }
+      }
+      for (i = k; i >= 1; i--) {
+        print record[keep[i]]
+      }
+    }
+  ' "${target_file}" > "${tmp_file}"
+
+  mv "${tmp_file}" "${target_file}"
+}
+
+record_count() {
+  local target_file="$1"
+
+  if [[ -s "${target_file}" ]]; then
+    awk 'END { print NR }' "${target_file}"
+  else
+    echo "0"
+  fi
+}
+
+record_names() {
+  local target_file="$1"
+
+  awk -F '\t' '
+    NF {
+      names = names (names ? " " : "") $1
+    }
+    END {
+      print names
+    }
+  ' "${target_file}"
+}
+
+mcp_plugins_claude_records="$(create_record_file)"
+mcp_plugins_cursor_records="$(create_record_file)"
+cc_plugins_claude_records="$(create_record_file)"
+cc_plugins_cursor_records="$(create_record_file)"
+
+cleanup_record_files() {
+  rm -f \
+    "${mcp_plugins_claude_records}" \
+    "${mcp_plugins_cursor_records}" \
+    "${cc_plugins_claude_records}" \
+    "${cc_plugins_cursor_records}"
+}
+
+trap cleanup_record_files EXIT
 
 echo "═══════════════════════════════════════════════════════════════"
 echo "  Metadata-Driven Skills & Tools Refresh"
@@ -95,13 +167,14 @@ echo "────────────────────────�
 
 # Validate agents
 agent_args=()
-read -r -a _agents <<< "${SKILLS_AGENTS}"
-for a in "${_agents[@]}"; do
+agent_count=0
+for a in ${SKILLS_AGENTS}; do
   [[ -n "${a}" ]] || continue
   agent_args+=(-a "${a}")
+  agent_count=$((agent_count + 1))
 done
 
-if (( ${#agent_args[@]} == 0 )); then
+if (( agent_count == 0 )); then
   echo "❌ SKILLS_AGENTS is empty; set it to space-separated list (e.g. cursor claude-code)." >&2
   exit 1
 fi
@@ -176,8 +249,8 @@ else
     while IFS= read -r -d '' plugin_dir; do
       plugin_name="$(basename "${plugin_dir}")"
       if [[ -f "${plugin_dir}/index.js" && -f "${plugin_dir}/package.json" ]]; then
-        mcp_plugins_claude["${plugin_name}"]="${plugin_dir}"
-        mcp_plugins_cursor["${plugin_name}"]="${plugin_dir}"
+        append_record "${mcp_plugins_claude_records}" "${plugin_name}" "${plugin_dir}"
+        append_record "${mcp_plugins_cursor_records}" "${plugin_name}" "${plugin_dir}"
       fi
     done < <(find "${PLUGINS_DIR}/all" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null || true)
   fi
@@ -187,7 +260,7 @@ else
     while IFS= read -r -d '' plugin_dir; do
       plugin_name="$(basename "${plugin_dir}")"
       if [[ -f "${plugin_dir}/index.js" && -f "${plugin_dir}/package.json" ]]; then
-        mcp_plugins_claude["${plugin_name}"]="${plugin_dir}"
+        append_record "${mcp_plugins_claude_records}" "${plugin_name}" "${plugin_dir}"
       fi
     done < <(find "${PLUGINS_DIR}/claude" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null || true)
   fi
@@ -197,18 +270,26 @@ else
     while IFS= read -r -d '' plugin_dir; do
       plugin_name="$(basename "${plugin_dir}")"
       if [[ -f "${plugin_dir}/index.js" && -f "${plugin_dir}/package.json" ]]; then
-        mcp_plugins_cursor["${plugin_name}"]="${plugin_dir}"
+        append_record "${mcp_plugins_cursor_records}" "${plugin_name}" "${plugin_dir}"
       fi
     done < <(find "${PLUGINS_DIR}/cursor" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null || true)
   fi
 
+  dedupe_last_wins "${mcp_plugins_claude_records}"
+  dedupe_last_wins "${mcp_plugins_cursor_records}"
+
+  mcp_plugins_claude_count="$(record_count "${mcp_plugins_claude_records}")"
+  mcp_plugins_cursor_count="$(record_count "${mcp_plugins_cursor_records}")"
+  mcp_plugins_claude_names="$(record_names "${mcp_plugins_claude_records}")"
+  mcp_plugins_cursor_names="$(record_names "${mcp_plugins_cursor_records}")"
+
   echo "Discovered MCP plugins:"
-  echo "  Claude Code: ${#mcp_plugins_claude[@]} plugin(s) (${!mcp_plugins_claude[@]})"
-  echo "  Cursor:      ${#mcp_plugins_cursor[@]} plugin(s) (${!mcp_plugins_cursor[@]})"
+  echo "  Claude Code: ${mcp_plugins_claude_count} plugin(s) (${mcp_plugins_claude_names})"
+  echo "  Cursor:      ${mcp_plugins_cursor_count} plugin(s) (${mcp_plugins_cursor_names})"
 fi
 
 # Configure Claude Code MCP plugins
-if (( ${#mcp_plugins_claude[@]} > 0 )); then
+if (( $(record_count "${mcp_plugins_claude_records}") > 0 )); then
   echo ""
   echo "Configuring Claude Code MCP plugins..."
 
@@ -220,8 +301,8 @@ if (( ${#mcp_plugins_claude[@]} > 0 )); then
   cp "${CLAUDE_SETTINGS}" "${CLAUDE_SETTINGS}.backup.$(date +%Y%m%d_%H%M%S)"
 
   mcp_config_claude=""
-  for plugin_name in "${!mcp_plugins_claude[@]}"; do
-    plugin_dir="${mcp_plugins_claude[$plugin_name]}"
+  while IFS=$'\t' read -r plugin_name plugin_dir; do
+    [[ -n "${plugin_name}" ]] || continue
 
     if [[ "${TOOLS_MODE}" == "github" ]]; then
       # Extract scope from path
@@ -255,7 +336,7 @@ ${mcp_entry}"
     else
       mcp_config_claude="${mcp_entry}"
     fi
-  done
+  done < "${mcp_plugins_claude_records}"
 
   if command -v jq &> /dev/null; then
     echo "{\"mcpServers\":{${mcp_config_claude}}}" | jq -s '.[0] * .[1]' "${CLAUDE_SETTINGS}" - > "${CLAUDE_SETTINGS}.tmp"
@@ -269,7 +350,7 @@ ${mcp_entry}"
 fi
 
 # Configure Cursor MCP plugins
-if (( ${#mcp_plugins_cursor[@]} > 0 )); then
+if (( $(record_count "${mcp_plugins_cursor_records}") > 0 )); then
   echo ""
   echo "Configuring Cursor MCP plugins..."
 
@@ -281,8 +362,8 @@ if (( ${#mcp_plugins_cursor[@]} > 0 )); then
   cp "${CURSOR_MCP}" "${CURSOR_MCP}.backup.$(date +%Y%m%d_%H%M%S)"
 
   mcp_config_cursor=""
-  for plugin_name in "${!mcp_plugins_cursor[@]}"; do
-    plugin_dir="${mcp_plugins_cursor[$plugin_name]}"
+  while IFS=$'\t' read -r plugin_name plugin_dir; do
+    [[ -n "${plugin_name}" ]] || continue
 
     if [[ "${TOOLS_MODE}" == "github" ]]; then
       scope="all"
@@ -315,7 +396,7 @@ ${cursor_entry}"
     else
       mcp_config_cursor="${cursor_entry}"
     fi
-  done
+  done < "${mcp_plugins_cursor_records}"
 
   if command -v jq &> /dev/null; then
     echo "{\"mcpServers\":{${mcp_config_cursor}}}" | jq -s '.[0] * .[1]' "${CURSOR_MCP}" - > "${CURSOR_MCP}.tmp"
@@ -347,8 +428,8 @@ else
     while IFS= read -r -d '' manifest; do
       plugin_dir="$(dirname "$(dirname "${manifest}")")"
       plugin_name="$(basename "${plugin_dir}")"
-      cc_plugins_claude["${plugin_name}"]="${plugin_dir}"
-      cc_plugins_cursor["${plugin_name}"]="${plugin_dir}"
+      append_record "${cc_plugins_claude_records}" "${plugin_name}" "${plugin_dir}"
+      append_record "${cc_plugins_cursor_records}" "${plugin_name}" "${plugin_dir}"
     done < <(find "${PLUGINS_DIR}/all" -mindepth 2 -maxdepth 2 -path "*/.claude-plugin/plugin.json" -type f -print0 2>/dev/null || true)
   fi
 
@@ -357,7 +438,7 @@ else
     while IFS= read -r -d '' manifest; do
       plugin_dir="$(dirname "$(dirname "${manifest}")")"
       plugin_name="$(basename "${plugin_dir}")"
-      cc_plugins_claude["${plugin_name}"]="${plugin_dir}"
+      append_record "${cc_plugins_claude_records}" "${plugin_name}" "${plugin_dir}"
     done < <(find "${PLUGINS_DIR}/claude" -mindepth 2 -maxdepth 2 -path "*/.claude-plugin/plugin.json" -type f -print0 2>/dev/null || true)
   fi
 
@@ -366,35 +447,40 @@ else
     while IFS= read -r -d '' manifest; do
       plugin_dir="$(dirname "$(dirname "${manifest}")")"
       plugin_name="$(basename "${plugin_dir}")"
-      cc_plugins_cursor["${plugin_name}"]="${plugin_dir}"
+      append_record "${cc_plugins_cursor_records}" "${plugin_name}" "${plugin_dir}"
     done < <(find "${PLUGINS_DIR}/cursor" -mindepth 2 -maxdepth 2 -path "*/.claude-plugin/plugin.json" -type f -print0 2>/dev/null || true)
   fi
 
+  dedupe_last_wins "${cc_plugins_claude_records}"
+  dedupe_last_wins "${cc_plugins_cursor_records}"
+
   echo "Discovered Claude Code plugins:"
-  claude_count="${#cc_plugins_claude[@]}"
-  cursor_count="${#cc_plugins_cursor[@]}"
+  claude_count="$(record_count "${cc_plugins_claude_records}")"
+  cursor_count="$(record_count "${cc_plugins_cursor_records}")"
+  claude_names="$(record_names "${cc_plugins_claude_records}")"
+  cursor_names="$(record_names "${cc_plugins_cursor_records}")"
 
   if (( claude_count > 0 )); then
-    echo "  Claude Code: ${claude_count} plugin(s) (${!cc_plugins_claude[*]})"
+    echo "  Claude Code: ${claude_count} plugin(s) (${claude_names})"
   else
     echo "  Claude Code: 0 plugin(s)"
   fi
 
   if (( cursor_count > 0 )); then
-    echo "  Cursor:      ${cursor_count} plugin(s) (${!cc_plugins_cursor[*]})"
+    echo "  Cursor:      ${cursor_count} plugin(s) (${cursor_names})"
   else
     echo "  Cursor:      0 plugin(s)"
   fi
 fi
 
 # Install Claude Code plugins
-if (( ${#cc_plugins_claude[@]} > 0 )); then
+if (( $(record_count "${cc_plugins_claude_records}") > 0 )); then
   echo ""
   echo "Installing Claude Code plugins..."
   mkdir -p "${CLAUDE_PLUGINS}"
 
-  for plugin_name in "${!cc_plugins_claude[@]}"; do
-    src_dir="${cc_plugins_claude[$plugin_name]}"
+  while IFS=$'\t' read -r plugin_name src_dir; do
+    [[ -n "${plugin_name}" ]] || continue
     dest="${CLAUDE_PLUGINS}/${plugin_name}"
 
     if [[ -d "${dest}" ]]; then
@@ -402,16 +488,16 @@ if (( ${#cc_plugins_claude[@]} > 0 )); then
     fi
     cp -r "${src_dir}" "${dest}"
     echo "✅ ${plugin_name} → ${dest}"
-  done
+  done < "${cc_plugins_claude_records}"
 fi
 
-if (( ${#cc_plugins_cursor[@]} > 0 )); then
+if (( $(record_count "${cc_plugins_cursor_records}") > 0 )); then
   echo ""
   echo "Installing Cursor plugins..."
   mkdir -p "${CURSOR_PLUGINS}"
 
-  for plugin_name in "${!cc_plugins_cursor[@]}"; do
-    src_dir="${cc_plugins_cursor[$plugin_name]}"
+  while IFS=$'\t' read -r plugin_name src_dir; do
+    [[ -n "${plugin_name}" ]] || continue
     dest="${CURSOR_PLUGINS}/${plugin_name}"
 
     if [[ -d "${dest}" ]]; then
@@ -419,7 +505,7 @@ if (( ${#cc_plugins_cursor[@]} > 0 )); then
     fi
     cp -r "${src_dir}" "${dest}"
     echo "✅ ${plugin_name} → ${dest}"
-  done
+  done < "${cc_plugins_cursor_records}"
 fi
 
 echo ""
@@ -429,11 +515,11 @@ echo "════════════════════════�
 echo ""
 echo "Skills: ${#discovered_skills[@]} discovered and installed"
 echo "MCP Plugins:"
-echo "  Claude Code: ${#mcp_plugins_claude[@]} configured"
-echo "  Cursor:      ${#mcp_plugins_cursor[@]} configured"
+echo "  Claude Code: $(record_count "${mcp_plugins_claude_records}") configured"
+echo "  Cursor:      $(record_count "${mcp_plugins_cursor_records}") configured"
 echo "Claude Code Plugins:"
-echo "  Claude Code: ${#cc_plugins_claude[@]} installed"
-echo "  Cursor:      ${#cc_plugins_cursor[@]} installed"
+echo "  Claude Code: $(record_count "${cc_plugins_claude_records}") installed"
+echo "  Cursor:      $(record_count "${cc_plugins_cursor_records}") installed"
 echo ""
 echo "Next steps:"
 echo "  • Claude Code: Restart or /reload-plugins"
