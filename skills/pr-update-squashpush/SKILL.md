@@ -35,8 +35,9 @@ Do **not** use this skill if:
 3. **Pre-flight safety checks.** Abort and tell the user if any of these are true:
    - Working tree is dirty (uncommitted changes). The user should commit or stash first.
    - Current branch equals the base branch (squashing master into itself makes no sense).
-   - Only one commit is ahead of the base (`git rev-list --count ${BASE}..HEAD` returns `1`). Nothing to squash; just `git push --force-with-lease` if needed.
    - The branch has **no** upstream and the user has not asked for a first push. Confirm intent before pushing a brand-new branch with `--set-upstream`.
+
+   **Single-commit fast-path:** If `git rev-list --count ${BASE}..HEAD` returns `1`, there is nothing to squash. Skip steps 6–8 (message capture, soft-reset, commit) and proceed directly to step 4 (fetch), step 5 (rebase onto latest base), and step 10 (push). This handles the common "PR is out of date with base" case where the branch has exactly one commit but master has advanced.
 
 4. **Snapshot the pre-fetch base, then refresh remote refs.** Capture the current `${BASE}` SHA *before* fetching so you have a reference point for the post-squash verification in step 9:
    ```bash
