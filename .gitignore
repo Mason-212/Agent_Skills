@@ -27,3 +27,6 @@ apps/multi_agent_generator_evaluator_loop/runs/
 
 # uv / local venv under apps/
 apps/.venv/
+
+# lib/aor secrets
+lib/aor/.env

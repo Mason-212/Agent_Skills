@@ -302,6 +302,68 @@ SKILLS_AGENTS="cursor claude-code" ./scripts/dev_refresh_skills_and_tools.sh
 
 ---
 
+## `lib/aor` — Multi-Agent Python Library
+
+`lib/aor` is a local Python library for building DAG-based multi-agent workflows using LangGraph. It powers the `aor-multiagent-*` skills.
+
+### Setup
+
+```bash
+cd lib/aor
+uv sync
+```
+
+### Quality checks (lint + typecheck + tests)
+
+```bash
+# From repo root:
+uv run --project lib/aor check_aor
+
+# Or from lib/aor directly:
+cd lib/aor && uv run check_aor
+```
+
+This runs:
+1. `ruff check` — linting across `agent/`, `orchestrator/`, `packs/`
+2. `pyright` — static type checking
+3. `pytest tests/` — 22 unit tests (no real LLM calls)
+
+### Multi-Agent Packs
+
+| Pack | Skill | What it does |
+|------|-------|--------------|
+| `multiagent_adversarial` | `aor-multiagent-adversarial` | Generator + critic loop with verification gate |
+| `multiagent_roles` | `aor-multiagent-roles` | N agents with defined roles in sequence |
+| `multiagent_solution_space` | `aor-multiagent-solution-space` | Fan-out N explorers, synthesize findings |
+
+See `lib/aor/packs/README.md` for design rationale.
+
+### Tracing with Arize Phoenix
+
+Tracing is fully local — no account or API key needed. Traces appear in a browser UI at `http://localhost:6006`.
+
+```bash
+# 1. Configure
+cp lib/aor/.env.example lib/aor/.env
+# Edit lib/aor/.env and set: PHOENIX_TRACING=true
+
+# 2. Start Phoenix (separate terminal)
+cd lib/aor
+uv run python -m phoenix.server.main serve
+# Open http://localhost:6006
+
+# 3. Run a pack — traces appear automatically
+```
+
+Each pack run produces one trace in Phoenix showing:
+- Per-node spans (`aor.node.*`) with attempt number, prompt/response lengths
+- LLM call spans (`aor.llm_call`) with provider, model, prompt and response lengths
+- Policy decision spans (`aor.policy.*`) with action taken, next node, retry count
+
+Set `PHOENIX_TRACING=false` (default) to disable with zero overhead.
+
+---
+
 ## Documentation
 
 - **[DEV.md](DEV.md)** - Development workflow, adding skills/plugins, troubleshooting
