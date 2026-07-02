@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-SKILL_FILE="/Users/thomaschang/Documents/dev/git/thomaschangsf/skills/cu-setup/SKILL.md"
+SKILL_FILE="$(dirname "$0")/SKILL.md"
 
 if [[ ! -f "$SKILL_FILE" ]]; then
   echo "FAIL: SKILL.md not found"
