@@ -1,19 +1,37 @@
 ---
 name: pr-review-local
-description: Clone a GHE PR locally to /reviews/, run pr-understand walkthrough, then print a ready-to-paste fan-out review block.
+description: Review a GHE PR (by URL) or a local working branch — runs pr-understand walkthrough and prints ready-to-paste fan-out commands.
 ---
 
 # PR Review Local
 
 ## When to Use
 
-- The user provides a `git.soma.salesforce.com` PR URL and wants a **deep review** using local files
+- The user provides a `git.soma.salesforce.com` PR URL — agent clones the PR locally and reviews it
+- The user provides a local repo path and/or branch name — agent reviews the existing working branch directly
 - Downstream skills like `pr-understand` or fan-out parallel subagent review are planned
-- Replaces `gu pr_review_v2` — the agent runs all commands directly, no copy-paste required
 
-Do **not** use this skill for lightweight remote-only review — use `pr-review-remote` for that.
+For lightweight remote-only review that shows in the CodeNod Mac app, use `pr-review-remote`.
 
-## Operating Procedure
+## Step 0: Detect input mode
+
+Look at what the user provided:
+
+- **URL mode** — input contains `https://git.soma.salesforce.com/.../pull/<N>` → follow Steps 1–4 (PR path)
+- **Local mode** — input is a local directory path and/or branch name, or no input (use agent cwd) → skip to Step 4 (Local path)
+
+Print to user:
+```
+[pr-review-local] Mode: PR URL    (cloning remote PR)
+```
+or
+```
+[pr-review-local] Mode: Local branch    (reviewing existing working branch)
+```
+
+---
+
+## PR PATH (URL mode) — Steps 1–3
 
 ### Step 1: Parse the PR URL
 
@@ -22,12 +40,11 @@ Extract from `https://git.soma.salesforce.com/<owner>/<repo>/pull/<N>`:
 - `repo` — repository name (e.g. `edc-python`)
 - `pr_number` — PR number (e.g. `952`)
 - `ssh_url` — `git@git.soma.salesforce.com:<owner>/<repo>.git`
-- `clone_dir` — `PR-<pr_number>` (relative to agent's current working directory)
-- `repo_path` — `<cwd>/PR-<pr_number>` where `<cwd>` is the agent's current working directory at invocation time
+- `repo_path` — `<cwd>/PR-<pr_number>` where `<cwd>` is agent's current working directory
 - `pr_branch` — `pr-<pr_number>`
 - `pr_ref` — `<owner>/<repo>#<pr_number>`
 
-Print to user:
+Print:
 ```
 [pr-review-local] Parsed: owner=<owner> repo=<repo> PR=<pr_number>
 [pr-review-local] Clone target: <cwd>/PR-<pr_number>
@@ -62,15 +79,51 @@ git switch pr-<pr_number>
 
 Print: `[pr-review-local] Switched to branch: pr-<pr_number>`
 
+---
+
+## LOCAL PATH — Step 4a (local mode only)
+
+### Step 4a: Enter the repo and confirm branch
+
+If the user provided a path, `cd` to it. Otherwise use the agent's current working directory.
+
+```bash
+cd <path>          # if provided; otherwise already in cwd
+git fetch origin
+```
+
+Determine the current branch and `owner/repo` from the git remote URL:
+```bash
+git branch --show-current
+git remote get-url origin
+```
+
+Set:
+- `repo_path` — the directory used above
+- `pr_branch` — current branch name (e.g. `W-Tool-Registry`)
+- `owner/repo` — parsed from the remote URL
+- `base` — `origin/master` (default; use `origin/main` if master doesn't exist)
+
+Print:
+```
+[pr-review-local] Repo: <repo_path>
+[pr-review-local] Branch: <pr_branch>
+[pr-review-local] Base: origin/master
+```
+
+---
+
+## SHARED STEPS — Steps 4–6 (both modes)
+
 ### Step 4: Verify the diff
 
 Print: `[pr-review-local] Changed files vs origin/master:`
 
 ```bash
-git diff --name-only origin/master...pr-<pr_number>
+git diff --name-only origin/master...<pr_branch>
 ```
 
-Print the file list. If it is empty or looks wrong (e.g. contains unrelated files), stop and report the issue before proceeding.
+Print the file list. If it is empty or looks wrong, stop and report before proceeding.
 
 ### Step 5: Invoke pr-understand
 
@@ -78,43 +131,40 @@ Print: `[pr-review-local] Running pr-understand walkthrough...`
 
 Read and follow the `pr-understand` skill at `/Users/thomaschang/.claude/skills/pr-understand/SKILL.md`.
 
-Use the local repo as the source — load context via:
+Load context via:
 ```bash
-git diff origin/master...pr-<pr_number>
+git diff origin/master...<pr_branch>
 ```
 
 Produce the full `pr-understand` output: Big Picture, Touched Areas, Implementation Details, Tests as Examples, Navigation Map, What Still Feels Unclear, and the restatement gate.
 
 ### Step 6: Print the copy-paste command block
 
-After the `pr-understand` walkthrough, print this block so the user can run these commands when ready.
-
-Print exactly (substituting real values for `<cwd>`, `<pr_number>`, `<owner>`, `<repo>`):
+Print (substituting real values):
 
 ```
 ==============================================================
 NEXT STEPS — run these when ready
 ==============================================================
 
-# 1. CodeNod local review (results visible in terminal only, NOT Mac app):
-cd <cwd>/PR-<pr_number>
+# 1. CodeNod local review (terminal only, NOT Mac app):
+cd <repo_path>
 codenod branch review --base origin/master --repo <owner>/<repo>
 
-# 2. Deep parallel agent review (open a new chat from inside the PR directory):
-cd <cwd>/PR-<pr_number>
+# 2. Deep parallel agent review (open a new chat from this directory):
+cd <repo_path>
 /pr-review-toolkit:review-pr all parallel
 
 ==============================================================
-Tip for step 2: open the new chat with working directory set to <cwd>/PR-<pr_number>
+Tip for step 2: open the new chat with working directory set to <repo_path>
 ==============================================================
 ```
 
 ## Important Constraints
 
-- **Run all git commands directly** — do not print commands for the user to copy; execute them.
-- The only output intended for user copy-paste is the fan-out block in Step 6.
-- Clone target is always relative to the agent's current working directory at invocation time — never a hardcoded path.
-- Do not fabricate file-level agent prompts in the fan-out block; the `pr-review-toolkit:review-pr all parallel` command handles that automatically.
-- **Read-only after clone** — no edits to cloned files.
-- If any git command fails, report the error and stop; do not proceed with a broken repo state.
-- The three-dot diff (`origin/master...pr-<N>`) is mandatory — it shows only PR changes, not master changes merged in.
+- **Run all git commands directly** — do not print them for the user to copy; execute them.
+- The only output for user copy-paste is the block in Step 6.
+- In URL mode, clone target is relative to the agent's cwd at invocation time — never hardcoded.
+- **Read-only** — no edits to any files.
+- If any git command fails, report the error and stop.
+- Always use three-dot diff (`origin/master...<branch>`) to show only branch changes, not master changes merged in.
