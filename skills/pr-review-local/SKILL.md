@@ -155,8 +155,12 @@ codenod branch review --base origin/master --repo <owner>/<repo>
 cd <repo_path>
 /pr-review-toolkit:review-pr all parallel
 
+# 3. Structured rubric critique (stress-test, blind spots, code quality, etc.):
+#    Type in chat: critique-me
+#    Then select rubrics when prompted (e.g. "Rubrics: 1,2,4" or "Rubrics: all")
+
 ==============================================================
-Tip for step 2: open the new chat with working directory set to <repo_path>
+Tip for steps 2 & 3: open the new chat with working directory set to <repo_path>
 ==============================================================
 ```
 
