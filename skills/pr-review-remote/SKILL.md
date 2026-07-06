@@ -23,12 +23,12 @@ Extract from `https://git.soma.salesforce.com/<owner>/<repo>/pull/<N>`:
 
 Print: `[pr-review-remote] PR: <pr_ref>`
 
-### Step 2: Sync CodeNod
+### Step 2: Pull the PR into CodeNod (makes it appear in Mac app)
 
-Print: `[pr-review-remote] Syncing CodeNod...`
+Print: `[pr-review-remote] Pulling PR into CodeNod...`
 
 ```bash
-codenod sync
+codenod sync pr <owner>/<repo>#<pr_number>
 ```
 
 ### Step 3: Trigger the PR review
