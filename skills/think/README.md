@@ -61,37 +61,35 @@ Observation → Underlying Structure → Prediction/Decision/Action
 
 ```
 skills/think/
-├── SKILL.md                      # Main agent instructions
+├── SKILL.md                      # Main agent instructions (compression/decompression flow)
 ├── README.md                     # This file
 ├── docs/
+│   ├── architecture.md          # How it works (START HERE for users)
 │   ├── framework.md             # Core framework documentation
 │   ├── principles.md            # Evolution and key principles
 │   └── quality.md               # Quality principles (taste and judgment)
 ├── ir/
 │   └── dag-spec.md              # DAG specification for reasoning process
-├── evals/
+├── test_cases/
 │   ├── ai_education.md          # Example: AI and education query
 │   ├── investing.md             # Example: Investment analysis
 │   └── switzerland.md           # Example: Switzerland success analysis
-└── extensions/                   # Personal calibration (optional)
-    └── domains/                  # Domain-specific quality standards
-        └── investing/            # Equity investing operational guidance
-            ├── README.md         # Framework-agnostic patterns
-            ├── growth.md         # Growth approach procedures
-            └── ...               # Other approach procedures
+└── quality/                      # Quality standards by domain (evaluation criteria)
+    └── equity/                   # Equity investing
+        └── taste.md              # Compiled evaluation criteria
 ```
 
 ## Quick Reference
 
-### Reasoning Pipeline
+### Core Reasoning Flow (Compression/Decompression)
 
-1. **Clarify Objective** - What does the user need? Understanding or action?
-2. **Create Structures** - Build candidate mental models
-3. **Evaluate Structures** - Validate, test counterexamples, define scope
-4. **Select Structure** - Choose model with best explanatory power
-5. **Distill Structure** - Compress while preserving reasoning capability
-6. **Determine Output** - Understanding vs action plan
-7. **Deliver Result** - Provide validated response
+1. **Build Structure** - Create mental model that explains the domain
+2. **Validate** - Test against evidence and reality
+3. **Counterexamples** - Stress-test to find limitations (missing variables, contradictions, boundaries)
+4. **Compress** - Distill to essential insight
+5. **Expand** - Apply to user's specific context
+
+**Domain plugins augment each step** with specialized knowledge when available.
 
 ### Key Principles
 
@@ -103,44 +101,83 @@ skills/think/
 
 ## Documentation
 
+- **[docs/architecture.md](docs/architecture.md)** - **START HERE**: How the skill works - compression/decompression flow and how domain plugins integrate (for users)
 - **[docs/framework.md](docs/framework.md)** - Comprehensive framework specification including philosophy, terminology, evaluation methods, and reasoning principles
 - **[docs/principles.md](docs/principles.md)** - Evolution of the framework from compression/decompression to full reasoning system, with stress testing methodology
 - **[docs/quality.md](docs/quality.md)** - Quality principles for reasoning: taste (recognizing excellence) and judgment (decisions under uncertainty)
+- **[docs/learning-to-do.md](docs/learning-to-do.md)** - Common execution gaps and how to fix them (observed failures when applying the skill)
 - **[ir/dag-spec.md](ir/dag-spec.md)** - Implementation specification with node contracts, validation gates, and artifact schemas
 
 ## Evaluation Examples
 
-- **[evals/ai_education.md](evals/ai_education.md)** - Worked example: "If AI makes everyone capable of learning faster, why will some people still outperform others?"
-- **[evals/investing.md](evals/investing.md)** - Worked example: Identifying good investments with reasonable risk
-- **[evals/switzerland.md](evals/switzerland.md)** - Worked example: Understanding Switzerland's success through structured analysis
+- **[test_cases/ai_education.md](test_cases/ai_education.md)** - Worked example: "If AI makes everyone capable of learning faster, why will some people still outperform others?"
+- **[test_cases/investing.md](test_cases/investing.md)** - Worked example: Identifying good investments with reasonable risk
+- **[test_cases/switzerland.md](test_cases/switzerland.md)** - Worked example: Understanding Switzerland's success through structured analysis
 
-## Personal Extensions
+## Architecture: Core Flow + Domain Plugins
 
-The `extensions/` directory allows you to add domain-specific operational guidance that augments the universal framework with your personal taste and judgment.
+The think skill uses a **two-layer architecture**:
 
-### Two-Layer Architecture
+### Layer 1: Core Reasoning Flow (Universal)
 
-**Universal Framework** (skills/think/):
-- Structure and principles for reasoning (docs/)
-- DAG specification for implementation (ir/)
-- Evaluation examples (evals/)
+The compression/decompression flow runs on **every** query:
 
-**Personal Extensions** (extensions/domains/):
-- Operational guidance: HOW to apply frameworks rigorously
-- Verification methods: HOW to check claims with code
-- Counterfactual techniques: HOW to stress-test reasoning
-- Failure mode detection: HOW to identify weak reasoning
+```
+Build Structure → Validate → Counterexamples → Compress → Expand
+```
 
-**External Knowledge** (e.g., wiki-finance):
-- Domain knowledge: WHAT approaches exist
-- Framework definitions: WHEN to use each approach
-- Quality standards: WHY approaches work in certain conditions
+This flow is domain-agnostic and always active.
 
-Extensions reference external knowledge bases for framework details, then provide operational guidance on how to apply them.
+**Lives in**: `docs/framework.md`, `docs/principles.md`, `SKILL.md`
 
-**Example**: `extensions/domains/investing/` references wiki-finance for investing approaches, then provides verification methods and counterfactual patterns that work across all approaches. Approach-specific operational procedures are in subdirectories (e.g., `growth.md`, `value.md`).
+### Layer 2: Domain Plugins (When Available)
 
-This is where YOU bring taste and judgment to the agentic experience.
+Domain plugins **augment** the core flow with specialized knowledge:
+
+- Known structures in this domain
+- Quality standards for evidence
+- Common failure modes and stress tests
+- Verification methods (code, data, cross-referencing)
+- Compression/expansion criteria
+
+**Lives in**: `quality/{domain}/`
+
+**References**: External knowledge bases (e.g., wiki-finance) compiled into self-contained plugins at authoring time
+
+### How They Work Together
+
+```
+Core Flow (Step 1: Build Structure)
+    ↓
+    ← Plugin injects: Context on known frameworks (1-2 sentence summaries)
+    ↓
+Core Flow (Step 2: Validate)
+    ↓
+    ← Plugin injects: Quality standards for evidence (evidence hierarchy)
+    ↓
+Core Flow (Step 3: Counterexamples)
+    ↓
+    ← Plugin injects: Domain-specific stress tests and failure modes
+    ↓
+[continues...]
+```
+
+**Key principle**: Plugins provide evaluation criteria compiled from expert knowledge. They're self-contained (no runtime dependencies on external files).
+
+**See**: [docs/architecture.md](docs/architecture.md) for detailed explanation of how plugins integrate at each step.
+
+### Example: Equity Investing Domain
+
+**Plugin location**: `quality/equity/taste.md`
+
+**Source knowledge** (compiled at authoring time): wiki-finance, investment books, personal experience
+
+**How it augments**:
+- Step 1 (Build): Provides context on 5 known approaches (Value, Growth, Passive, Momentum, Macro)
+- Step 2 (Validate): Quality standards (evidence hierarchy, quality indicators)
+- Step 3 (Counterexamples): Domain-specific stress tests, failure modes
+- Step 4 (Compress): What complexity must stay explicit in investing
+- Step 5 (Expand): Verification methods (pull 10-K data, calculate metrics)
 
 ## Philosophy
 

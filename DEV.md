@@ -50,7 +50,7 @@ SKILLS_AGENTS="cursor claude-code" ./scripts/dev_refresh_skills_and_tools.sh
 ---
 
 ### `dev_refresh_claude_cursor_md.sh`
-Refreshes AI behavioral guidelines across Claude and Cursor. Run this when you update `use_cases/claude/CLAUDE_USER.md`.
+Refreshes AI behavioral guidelines across Claude and Cursor. Run this when you update `docs/behavioral/CLAUDE_USER.md`.
 
 ```bash
 ./scripts/dev_refresh_claude_cursor_md.sh
@@ -64,7 +64,7 @@ Refreshes AI behavioral guidelines across Claude and Cursor. Run this when you u
   - If `AGENTS.md` is git-tracked → writes `.cursor/rules/personal-guidelines.mdc` + gitignores it locally (via `.git/info/exclude`)
 - Optionally runs headless verification via `claude` and `cursor-agent` CLIs
 
-**Golden source**: `use_cases/claude/CLAUDE_USER.md`
+**Golden source**: `docs/behavioral/CLAUDE_USER.md`
 
 ---
 
@@ -131,82 +131,6 @@ Build unified MCP server with **BOTH tools AND skills (as prompts)**.
 - **Safety-conscious users**: Use manual mode (default), review config before adding
 
 ---
-
-## Using the Unified MCP Server (Local Development)
-
-The unified MCP server consolidates all MCP tools into a single entry point for easier local development.
-
-### Quick Setup
-
-```bash
-# 1. Build unified server (runs automatically with refresh script)
-./scripts/dev_refresh_skills_and_tools.sh
-
-# 2. Get absolute path
-echo "$(pwd)/build/index.js"
-
-# 3. Configure your agent (choose one below)
-```
-
-### Configuration by Agent
-
-#### Claude Code
-Edit `~/.claude/settings.json`:
-```json
-{
-  "mcpServers": {
-    "thomaschangsf-custom-skills": {
-      "command": "node",
-      "args": ["/ABSOLUTE/PATH/TO/skills/build/index.js"],
-      "env": {}
-    }
-  }
-}
-```
-Restart Claude Code or run `/reload-plugins`
-
-#### Claude Desktop (Mac)
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-```json
-{
-  "mcpServers": {
-    "thomaschangsf-custom-skills": {
-      "command": "node",
-      "args": ["/ABSOLUTE/PATH/TO/skills/build/index.js"]
-    }
-  }
-}
-```
-Restart Claude Desktop
-
-#### Cursor
-Edit `~/.cursor/mcp.json`:
-```json
-{
-  "mcpServers": {
-    "thomaschangsf-custom-skills": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["/ABSOLUTE/PATH/TO/skills/build/index.js"]
-    }
-  }
-}
-```
-Reload window: Cmd+Shift+P → Developer: Reload Window
-
-### Benefits
-
-- ✅ **Single configuration** - One entry instead of multiple plugins
-- ✅ **No network dependency** - Works with local clone, bypasses npm caching
-- ✅ **All tools available** - organize_markdown, convert_pdf_to_md in one server
-- ✅ **Easier debugging** - Edit handler, restart agent, test immediately
-
-### Available Tools
-
-- `organize_markdown` - Organize markdown: move images, number headings
-- `convert_pdf_to_md` - Convert PDF to Markdown with table extraction
-
-### Alternative: Individual Plugins
 
 The refresh script also configures individual plugins automatically (backward compatible):
 ```bash

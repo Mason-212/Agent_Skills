@@ -1,0 +1,11 @@
+[project]
+name = "yfinance-mcp"
+version = "0.1.0"
+description = "MCP server for Yahoo Finance stock data via yfinance"
+requires-python = ">=3.10"
+dependencies = [
+    "yfinance>=0.2.40",
+]
+
+[project.scripts]
+yfinance-mcp = "server:main"

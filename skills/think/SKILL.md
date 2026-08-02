@@ -22,114 +22,242 @@ Do not use for:
 
 ## Purpose
 
-Apply the Reasoning Framework to complex questions, statements, decisions, and planning tasks.
-
-This skill helps you construct, validate, and apply robust internal structures (mental models) that:
+Apply the compression/decompression reasoning flow to construct, validate, and apply robust mental models that:
 - Explain observations
 - Predict outcomes
 - Guide decisions
 - Transfer across situations
 
-## Instructions
+---
 
-The framework provides **principles and tools** for rigorous reasoning, not a rigid procedure. Apply judgment about what's needed.
+## Core Instruction: The Reasoning Flow
 
-### Core Principles (Always Apply)
+Follow this five-step flow for every think skill query. This is **universal** - it works regardless of domain.
 
-1. **Structure-first reasoning**: Build mental models that explain mechanisms, not just list facts
+### Key Operating Principles
+
+**1. Take action, don't interrogate**
+
+Do NOT ask the user for publicly available information:
+- Company information, financials, business models → Web search, SEC Edgar, financial APIs
+- Industry dynamics, competitors, market data → Research tools
+- Technical details, definitions, facts → Look them up
+
+Only ask the user for:
+- Personal preferences, constraints, goals (time horizon, risk tolerance, position size)
+- Context you cannot infer (why interested, prior decisions, portfolio constraints)
+- Choices between valid alternatives (which approach if genuinely unclear)
+
+**Default behavior**: Start reasoning immediately with available information. Gather more data using tools as needed. Only stop to ask if you need user-specific input that cannot be obtained otherwise.
+
+**Example - Good**:
+- User: "Should I invest in Company X?"
+- Agent: *Searches for Company X, pulls financials, researches industry, builds structure, then asks only about user's time horizon/goals if not already stated*
+
+**Example - Bad**:
+- User: "Should I invest in Company X?"
+- Agent: "What does Company X do? What's their business model? Do you have their financials?"
+
+---
+
+### Step 1: Build Structure
+
+**What**: Create a mental model that explains the domain or question.
+
+**How**:
+- Identify key entities, variables, and relationships
+- Build causal mechanisms (not just correlations)
+- Consider multiple candidate structures if unclear
+
+**Output**: An internal mental model with clear components and mechanisms
+
+**Quality plugin augmentation** (if available):
+- Understand common structures experts use in this domain (distilled into plugin)
+- Context on known frameworks/approaches (brief 1-2 sentence summaries)
+
+---
+
+### Step 2: Validate Structure
+
+**What**: Test whether the structure explains observations and predicts outcomes.
+
+**How**:
+- Does it explain existing evidence?
+- Does it make testable predictions?
+- Is it consistent with known facts?
+- Can you articulate the causal mechanism?
+
+**Output**: Evidence that structure is sound (or identification of flaws)
+
+**Quality plugin augmentation** (if available):
+- Apply domain-specific quality standards (evidence hierarchy, what counts as good evidence)
+- Check against known red flags and failure modes
+
+---
+
+### Step 3: Test with Counterexamples
+
+**What**: Stress-test the structure to find limitations.
+
+**How**: Apply three types of counterexamples:
+
+1. **Missing Variables**: What factors did you not consider?
+   - Effect: Refine the model to include them
+   
+2. **Contradictions**: What observations contradict the model?
+   - Effect: Replace or fundamentally revise the model
+   
+3. **Boundary Conditions**: Where does the model stop working?
+   - Effect: Define scope explicitly
+
+**Output**: Refined model with known limitations and scope
+
+**Quality plugin augmentation** (if available):
+- Apply domain-specific stress tests (counterfactuals distilled from expert knowledge)
+- Test approach-specific failure modes
+
+---
+
+### Step 4: Compress
+
+**What**: Distill the structure to its essential insight.
+
+**How**:
+- Remove complexity while preserving reasoning capability
+- Keep causal mechanisms visible
+- Simplicity must be *earned* through validation
+- Don't compress into slogans or oversimplifications
+
+**Output**: Compressed principle that captures the validated structure
+
+**Quality plugin augmentation** (if available):
+- Use domain-specific compression criteria (what complexity cannot be removed)
+- Reference known compressed principles from domain
+
+---
+
+### Step 5: Expand for User Context
+
+**What**: Apply the validated, compressed structure to the user's specific situation.
+
+**How**:
+- Recover necessary complexity for their case
+- Surface assumptions specific to their context
+- Define action steps or deeper understanding
+- Specify monitoring signals or follow-up checks
+
+**Output**: Understanding or action guidance tailored to user's situation
+
+**Quality plugin augmentation** (if available):
+- Use verification methods (code to check claims, data validation, cross-referencing)
+- Determine depth based on stakes and domain standards
+
+---
+
+## Key Principles (Apply Throughout)
+
+These principles guide the entire flow:
+
+1. **Structure-first reasoning**: Build models that explain mechanisms, not just list facts
 2. **Reality-based calibration**: Test structures against evidence and counterexamples
 3. **Earned simplicity**: Compress only after validation
 4. **Explicit scope**: Define where reasoning applies and where it doesn't
 5. **Separate facts from interpretation**: Surface assumptions
+6. **Take action, don't interrogate**: Gather publicly available information yourself; only ask users for personal context/preferences
 
-### Available Tools (Use as Needed)
+---
 
-**Framework documentation** (`docs/`):
-- `framework.md` - Core concepts and terminology
-- `principles.md` - Evolution of the approach
-- `quality.md` - What excellence looks like
-- `dag-spec.md` - Formal reasoning pipeline (if you need structure)
-
-**Domain-specific operational guidance** (`extensions/domains/`):
-- Verification methods (how to check claims with code/data)
-- Counterfactual patterns (how to stress-test reasoning)
-- Quality indicators (what excellence looks like in specific domains)
-- Failure modes (red flags to watch for)
-
-**Evaluation examples** (`evals/`):
-- Worked examples showing the principles in action
-
-### When to Go Deep vs Stay Light
+## When to Go Deep vs Stay Light
 
 **Go deep when**:
 - Stakes are high (major decision, significant investment, irreversible action)
-- Multiple valid approaches exist with real trade-offs
+- Multiple valid structures exist with real trade-offs
 - Assumptions are hidden or unclear
 - The user explicitly wants structured analysis
-- Domain has specialized operational guidance available
+- Domain has specialized guidance available
 
 **Stay light when**:
-- Query is straightforward with obvious answer
+- Query is straightforward with obvious structure
 - Stakes are low
 - User wants quick guidance, not exhaustive analysis
-- Your natural reasoning is already sound
+- Your natural reasoning already produces sound structure
 
-### Adaptive Approach for Investing Domain
+**Adaptive rigor**: The flow stays the same, but depth at each step varies.
 
-When you detect an investing question:
+---
 
-1. **Read wiki-finance** to understand available approaches (Value, Growth, Passive, Momentum, Macro)
-2. **Have a conversation** to understand context (not interrogate with checklist):
-   - What's the situation? (market conditions, time horizon, goals)
-   - What approach makes sense given their context?
-   - How much depth do they want?
-3. **Load relevant operational guidance** if needed:
-   - `extensions/domains/investing/README.md` - Framework-agnostic patterns
-   - `extensions/domains/investing/{approach}.md` - Approach-specific procedures
-4. **Use the tools that fit**:
-   - High-stakes concentrated bet → Full four-lens scan with verification
-   - Quick sanity check → Apply failure modes and red flags only
-   - Portfolio allocation question → Different framework entirely
+## Domain Plugin Integration
 
-**Key**: The operational guidance is a **toolbox**, not a **script**. Use what's needed for the situation.
+### How Plugins Work
 
-## Key Framework Concepts
+Quality plugins **augment** the core flow by providing domain-specific evaluation criteria at each step. They don't replace the flow.
 
-These concepts support the principles above. Reference when needed:
+**Available plugins**: Check `quality/` directory
 
-### Structure
-A mental model representing how something works:
-- Entities and variables
-- Relationships and mechanisms
-- Assumptions and constraints
-- Predictions
+**Current domains**:
+- `equity/` - Stock investing quality standards (compiled from expert knowledge)
 
-### Evaluation Approaches
-1. **Validation**: Does this explain observations and predict outcomes?
-2. **Counterexamples**: Three types:
-   - Missing variable → Refine the model
-   - Contradiction → Replace the model
-   - Boundary → Narrow the scope
-3. **Scope Analysis**: Where does/doesn't this apply?
+### When Plugins Are Loaded
 
-### Distillation vs Expansion
-- **Distillation**: Remove complexity while preserving reasoning capability
-- **Expansion**: Recover hidden assumptions when stakes require it
+**Automatic detection**: If query falls into a domain with available plugins, load relevant guidance.
 
-### Output Types
-- **Understanding**: Structure, mechanisms, assumptions, limitations
-- **Action**: Options, tradeoffs, risks, recommendations, monitoring signals
+**What plugins provide**:
+- **Tool/data source guidance**: Which APIs, MCPs, or data sources to use (respecting rate limits)
+- Quality standards for evidence (evidence hierarchy)
+- Common failure modes and red flags
+- Verification methods (code, data checks, cross-referencing)
+- Compression/expansion criteria
+- Context on known approaches (distilled 1-2 sentence summaries)
 
-## Quality Criteria
+**What plugins don't do**:
+- Replace the five-step flow
+- Provide rigid checklists
+- Determine the reasoning path
 
-Good reasoning demonstrates:
-- **Structure over facts**: Builds models that explain mechanisms, not just lists information
-- **Reality-tested**: Tests structures against evidence and counterexamples
-- **Explicit assumptions**: Makes hidden assumptions visible
-- **Bounded scope**: Defines where reasoning applies and where it breaks
-- **Adaptive rigor**: Goes deep when stakes are high, stays light when appropriate
+### Example: Equity Investing Domain
 
-**Not** about following procedures perfectly. It's about producing sound reasoning that helps the user understand or decide well.
+When you detect an equity investing question:
+
+**First: Read tool guidance**
+- Check `quality/equity/taste.md` "Tools Used" section
+- Follow data source priority: **yfinance (primary)** → Alpha Vantage (fallback) → SEC Edgar (deep-dive)
+- yfinance has generous rate limits: Can pull 5-10 stocks per analysis
+
+**Step 1 (Build Structure)**:
+- Read `quality/equity/taste.md` for context on 5 known approaches (Value, Growth, Passive, Momentum, Macro)
+- Have conversation with user to understand context (time horizon, goals, market conditions)
+- Build structure for what makes a good investment
+
+**Step 2 (Validate)**:
+- Apply evidence hierarchy from plugin (audited financials > management promises)
+- Use recommended tools: yfinance/Alpha Vantage for verified trailing metrics
+- Check quality standards (falsifiable claims, defined scope, causal mechanisms)
+- Use quality indicators if relevant approach identified (e.g., RPO growth for Growth approach)
+
+**Step 3 (Counterexamples)**:
+- Apply generic counterfactuals (assumption reversal, alternative explanations, boundary conditions)
+- Apply approach-specific stress tests if relevant (e.g., "What if CapEx reverses?" for Growth)
+- Check common failure modes (narrative without evidence, circular reasoning, etc.)
+
+**Step 4 (Compress)**:
+- Use investing-specific compression criteria from plugin
+- Keep explicit: valuation, quality, timing, risk
+- Example: "Good business ≠ good investment without price/timing/risk"
+
+**Step 5 (Expand)**:
+- Follow tool strategy from plugin: Pull fundamentals for 5-10 stocks via yfinance MCP
+- Use verification methods from plugin (pull 10-K data via SEC Edgar when needed)
+- Determine depth based on stakes (concentrated bet vs quick sanity check)
+- Apply relevant quality indicators
+- Add "Data Sources & Verification" section per citation guidance
+
+**Key**: Conversational, not interrogative. Ask intelligent questions to understand context, don't run through a checklist.
+
+**Tool usage**: Use yfinance MCP as primary source (generous limits). Fall back to Alpha Vantage only if needed. Acknowledge gaps explicitly if data unavailable.
+
+**Note**: The plugin provides evaluation criteria compiled from expert knowledge (wiki-finance, books, experience). It's self-contained - no runtime dependencies on external files.
+
+---
 
 ## Transparency Without Overnarration
 
@@ -157,29 +285,110 @@ Good reasoning demonstrates:
 - Mechanical aspects of the framework
 
 **Format for clean transparency**:
-- Use section headers that signal structure naturally ("Evidence", "Risks", "When This Fails")
+- Use section headers that signal structure naturally ("Structure", "Evidence", "Risks", "When This Fails")
 - Lead with "Here's my approach: ..." when approach choice matters
 - Embed assumptions and limitations naturally in the flow
 - Show your reasoning path through clear structure, not narration
 
-## Examples
+---
 
-See `evals/` directory for worked examples:
+## Data Citation & Verification
+
+When your analysis relies on specific data points, provide a clean audit trail without cluttering the reasoning flow.
+
+### During Analysis (Clean)
+Use subtle inline markers for confidence level:
+- No marker = verified/high confidence
+- "(estimated)" = analyst consensus/projections
+- "(guidance)" = management statements
+- "(assumed)" = inference from available data
+
+Example:
+```
+- NVDA trailing PE: 31.2x
+- NVDA forward PE: ~28x (estimated)
+- Revenue growth: 46% YoY
+- Expected CapEx trends: +15-20% (guidance)
+```
+
+### At End (Full Verification Section)
+Add a "Data Sources & Verification" section at the end with three parts:
+
+**1. Verified Data** - Show how to reproduce:
+```
+Verified Data:
+- Stock fundamentals: Alpha Vantage COMPANY_OVERVIEW for NVDA, AMD, INTC
+  - Fields used: PERatio, EPS, MarketCapitalization, ProfitMargin
+  - Reproduce: CallMcpTool(server="Alpha Vantage", toolName="COMPANY_OVERVIEW", symbol="NVDA")
+```
+
+**2. Estimated Data** - Provide search queries and sources:
+```
+Estimated Data:
+- Forward P/E, analyst targets: Web search "NVDA analyst consensus 2026"
+  - Sources: Reuters, Bloomberg, Seeking Alpha
+- CapEx guidance: Web search "hyperscaler capex guidance 2026"
+  - Sources: Company earnings calls, investor presentations
+```
+
+**3. Confidence Levels** - Be explicit:
+```
+Confidence:
+- High: Trailing metrics from audited financials (PE, EPS, margins)
+- Medium: Forward estimates from analyst consensus
+- Low: Guidance subject to change (CapEx projections, management targets)
+```
+
+### Key Principles
+- **Reproducible**: Show exact tool + parameters for verified data
+- **Traceable**: Provide search queries (and URLs when available) for estimates
+- **Honest**: Explicitly list what couldn't be verified or has low confidence
+- **Non-intrusive**: Keep verification at the bottom so it doesn't disrupt reasoning flow
+
+---
+
+## Quality Criteria
+
+Good reasoning demonstrates:
+- **Structure over facts**: Builds models that explain mechanisms, not just lists information
+- **Reality-tested**: Tests structures against evidence and counterexamples
+- **Explicit assumptions**: Makes hidden assumptions visible
+- **Bounded scope**: Defines where reasoning applies and where it breaks
+- **Adaptive rigor**: Goes deep when stakes are high, stays light when appropriate
+
+**Not** about following procedures perfectly. It's about producing sound reasoning through the compression/decompression flow.
+
+---
+
+## Supporting Resources
+
+**Framework documentation** (`docs/`):
+- `framework.md` - Core concepts and terminology
+- `principles.md` - Evolution of the approach
+- `quality.md` - What excellence looks like
+- `architecture.md` - How plugins integrate with core flow (for users)
+- `learning-to-do.md` - Common execution gaps and how to fix them
+- `dag-spec.md` - Formal reasoning pipeline specification
+
+**Evaluation examples** (`evals/`):
 - `ai_education.md` - AI and education analysis
 - `investing.md` - Investment decision framework
 - `switzerland.md` - Switzerland success analysis
 
-## Domain-Specific Extensions
+**Domain plugins** (`quality/`):
+- `equity/` - Equity investing quality standards
+  - `taste.md` - Compiled evaluation criteria from expert knowledge
 
-The `extensions/domains/` directory contains operational guidance for applying the framework rigorously in specific domains.
+---
 
-**Available domains**:
-- `investing/` - Equity investing with framework-agnostic patterns and approach-specific procedures (Growth, Value, Momentum, Passive, Macro)
+## Remember
 
-**When to use**: Load domain extensions when you detect the query falls into a calibrated domain. The extensions provide:
-- Verification methods (how to check claims with code/data)
-- Counterfactual patterns (how to stress-test reasoning)
-- Quality indicators (what excellence looks like in this domain)
-- Failure modes (red flags to watch for)
+The five-step compression/decompression flow is universal and always applies:
 
-**Integration**: Domain extensions augment the universal framework with domain-specific rigor. Use them when the situation warrants - they're tools to enhance reasoning, not requirements to follow mechanically.
+1. Build Structure
+2. Validate
+3. Counterexamples
+4. Compress
+5. Expand
+
+Domain plugins make this flow **sharper** in specialized domains, but they never replace it.

@@ -1,0 +1,10 @@
+max_iterations: 3
+current_iteration: 1
+rubric_preset: "1,2,3"
+artifact_paths:
+  - /Users/chang/Documents/dev/git/ml/skills/apps/multi_agent_generator_evaluator_loop/runs/run_e7bbffb23b4e/goal.md
+  - /Users/chang/Documents/dev/git/ml/skills/apps/multi_agent_generator_evaluator_loop/runs/run_e7bbffb23b4e/dod.md
+  - /Users/chang/Documents/dev/git/ml/skills/apps/multi_agent_generator_evaluator_loop/runs/run_e7bbffb23b4e/reasoning.md
+  - /Users/chang/Documents/dev/git/ml/skills/apps/multi_agent_generator_evaluator_loop/runs/run_e7bbffb23b4e/plan.md
+  - /Users/chang/Documents/dev/git/ml/skills/apps/multi_agent_generator_evaluator_loop/runs/run_e7bbffb23b4e/critique-iter-1.md
+  - /Users/chang/Documents/dev/git/ml/skills
