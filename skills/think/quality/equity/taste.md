@@ -33,13 +33,13 @@ This section defines which data sources and tools to use for equity analysis, re
 **For verified fundamentals (Tier 1 data):**
 
 1. **yfinance (Yahoo Finance API)** (Primary - Generous limits)
-   - Status: **Available via MCP** (`mcps/all/yfinance/`)
+   - Status: **Available via MCP** (`mcps/python/yfinance/`)
    - Use for: Real-time fundamentals (PE, forward PE, EPS, margins, revenue growth, analyst targets)
    - Rate limit: Much more generous than Alpha Vantage (no documented daily cap)
    - When: Primary source for current stock fundamentals
 
 2. **SEC Edgar API** (Deep-dive - Unlimited)
-   - Status: **Available via MCP** (`mcps/all/sec-edgar/`)
+   - Status: **Available via MCP** (`mcps/python/sec-edgar/`)
    - Use for: Audited financial statements from 10-K/10-Q, search for RPO/backlog disclosures, contract terms
    - Rate limit: Unlimited (with proper User-Agent)
    - When: Deep-dive verification, searching for specific disclosures in filings

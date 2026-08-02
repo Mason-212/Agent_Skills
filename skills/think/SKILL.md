@@ -154,6 +154,97 @@ Only ask the user for:
 
 ---
 
+### Step 6: Verify Framework Effectiveness (Required)
+
+**What**: Test whether your reasoning is accurate vs internally consistent but wrong.
+
+**Why**: Steps 1-5 can produce internally coherent analysis that fails externally through confirmation bias, hallucinated mechanisms, or blind spots. Step 6 catches these errors.
+
+**How**: Apply three verification methods:
+
+#### 1. Counterfactual Testing (Highest Priority)
+
+**Method**: "If my model is TRUE, what ELSE must be observable?"
+
+**Process**:
+- Generate 3-5 independent predictions from your model
+- Check predictions against sources you haven't used yet
+- Look for evidence that SHOULD exist if model is correct
+- Threshold: If <60% of predictions hold, model is weak
+
+**Example (Power bottleneck thesis)**:
+- Prediction 1: Power suppliers (Vertiv) should show order backlogs
+- Prediction 2: Hyperscaler CapEx should remain >$600B
+- Prediction 3: Data center construction timelines lengthening
+- Prediction 4: Utility CapEx spiking
+
+**Output**: Independent confirmation or refutation of key claims
+
+---
+
+#### 2. Adversarial Review (Steel-Man Opposition)
+
+**Method**: "Build the strongest possible counter-thesis and test THAT"
+
+**Process**:
+- State your thesis clearly
+- Build the BEST counter-argument (not a strawman)
+- Apply same rigor: gather evidence, test counterfactuals
+- Honest adjudication: Which explains observations better?
+
+**Example (NVDA bull vs bear)**:
+- Bull: Power bottleneck extends moat, Forward PE 15.57 cheap
+- Bear: AMD reaches parity, FCF pressure forces CapEx cuts, margins compress
+- Test both → Bull stronger near-term, bear credible medium-term
+
+**Output**: Calibrated confidence with explicit risks and limitations
+
+---
+
+#### 3. Cross-Source Triangulation
+
+**Method**: "Verify key claims from 2+ independent sources"
+
+**Process**:
+- Identify critical claims your thesis depends on
+- Check each claim against multiple independent sources
+- Sources should be structurally different (not correlated)
+- If sources contradict, investigate discrepancy
+
+**Example (Power bottleneck)**:
+- Source 1: Industry reports (Gartner)
+- Source 2: Power suppliers (Vertiv earnings)
+- Source 3: Hyperscaler CapEx breakdowns
+- Source 4: Utility grid expansion timelines
+- All four confirm → High confidence
+
+**Output**: Evidence quality assessment (strong vs weak vs unverified)
+
+---
+
+**Step 6 Output**: Confidence assessment with identified uncertainties
+
+**Confidence levels**:
+- **High**: 3/3 methods pass, counterfactuals hold (>60%), multiple independent sources
+- **Medium**: 2/3 methods pass, some counterfactuals fail, limited sources
+- **Low**: <2/3 methods pass, most counterfactuals fail, single source only
+
+**Red flags (reasoning may be wrong)**:
+- <60% of counterfactual predictions hold
+- Bull and bear cases equally strong (high uncertainty)
+- Only one source supports key claim
+- Sources contradict and discrepancy unexplained
+
+**Note**: Steps 1-5 build the analysis. Step 6 verifies it's sound, not just coherent.
+
+---
+
+**Future enhancements (TODO)**:
+- Calculation Verification: Reproduce key numbers from raw sources (catches data bugs)
+- Predictive Testing: Make falsifiable predictions, check when new data arrives (tracks accuracy over time)
+
+---
+
 ## Key Principles (Apply Throughout)
 
 These principles guide the entire flow:
