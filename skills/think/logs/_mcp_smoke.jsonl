@@ -1,2 +1,0 @@
-{"event": "log_created", "timestamp": "2026-08-03T15:48:03.842170Z", "seq": 1, "query": "smoke", "session_id": "s1"}
-{"event": "query_start", "timestamp": "2026-08-03T15:48:03.842579Z", "seq": 2, "query": "smoke"}

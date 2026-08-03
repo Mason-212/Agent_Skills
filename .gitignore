@@ -30,3 +30,6 @@ apps/.venv/
 
 # lib/aor secrets
 lib/aor/.env
+
+# Think skill experiment notebooks (machine event streams; keep local)
+skills/think/logs/*.jsonl
