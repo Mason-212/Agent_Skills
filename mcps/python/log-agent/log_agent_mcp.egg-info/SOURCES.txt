@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+server.py
+log_agent_mcp.egg-info/PKG-INFO
+log_agent_mcp.egg-info/SOURCES.txt
+log_agent_mcp.egg-info/dependency_links.txt
+log_agent_mcp.egg-info/entry_points.txt
+log_agent_mcp.egg-info/requires.txt
+log_agent_mcp.egg-info/top_level.txt

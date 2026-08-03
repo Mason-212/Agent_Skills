@@ -14,9 +14,9 @@ The five-step framework (Build → Validate → Test → Compress → Expand) ca
 - Single-period noise mistaken for signal
 
 **Step 6 adds systematic verification** to differentiate:
-- **Accurate reasoning**: Multiple independent sources confirm, counterfactuals hold, temporally consistent
+- **Accurate reasoning**: Multiple independent sources confirm, consequence tests hold, temporally consistent
 - **Noisy data**: Single-period spike, doesn't hold across time
-- **Hallucination**: Internally consistent but fails counterfactual tests
+- **Hallucination**: Internally consistent but fails consequence tests
 
 ---
 
@@ -41,9 +41,11 @@ Test whether your reasoning is accurate vs internally consistent but wrong.
 ### How
 Apply six verification methods to catch errors, noise, and hallucinations:
 
-#### 1. Counterfactual Testing (Strongest)
+#### 1. Consequence Testing (Strongest)
 
 **Method**: "If my model is TRUE, what ELSE must be observable?"
+
+**Note**: This is deductive prediction testing, not RL/ML counterfactuals (which ask "what if I had chosen a different action?"). We test whether the model's logical consequences match independent evidence.
 
 **Process**:
 - Generate 3-5 independent predictions from your model
@@ -59,6 +61,8 @@ Apply six verification methods to catch errors, noise, and hallucinations:
 - Prediction 5: Data center power capacity additions accelerating → Check industry reports
 
 **Test**: If 3/5 predictions fail, power bottleneck thesis is weak or wrongly specified
+
+**Why "Consequence Testing" not "Counterfactual"?** In ML/RL, counterfactuals mean "what would happen if agent chose action B instead of A?" This is different - we're testing whether observable consequences match our model's predictions.
 
 ---
 
@@ -170,20 +174,20 @@ Apply six verification methods to catch errors, noise, and hallucinations:
 After applying verification methods, assign confidence levels:
 
 **High Confidence** (4+ methods pass):
-- Counterfactuals hold (>60% of predictions confirmed)
+- Consequence tests hold (>60% of predictions confirmed)
 - Temporal consistency (pattern holds 3+ periods)
 - Can reproduce calculations from raw data
 - Cross-source triangulation confirms key claims
 - Made falsifiable predictions (if tested)
 
 **Medium Confidence** (2-3 methods pass):
-- Some counterfactuals hold, some fail
+- Some consequence tests hold, some fail
 - Temporal data limited or mixed
 - Some sources confirm, others neutral/contradictory
 - Could build equally strong counter-thesis
 
 **Low Confidence** (<2 methods pass):
-- Most counterfactuals fail
+- Most consequence tests fail
 - Single-period data only
 - Can't reproduce calculations
 - Only one source supports claim
@@ -193,7 +197,7 @@ After applying verification methods, assign confidence levels:
 
 ## Red Flags: Reasoning May Be Wrong
 
-1. **<60% of counterfactual predictions hold** → Model is incomplete or wrong
+1. **<60% of consequence predictions hold** → Model is incomplete or wrong
 2. **Temporal inconsistency** → Current period is noise, not signal
 3. **Can't reproduce key calculations** → Data source error or parsing bug
 4. **Bull case and bear case equally strong** → High uncertainty, need more data
@@ -208,7 +212,7 @@ After applying verification methods, assign confidence levels:
 
 **Workflow**:
 1. **Steps 1-5**: Build, validate, test, compress, expand (produce analysis)
-2. **Step 6**: Verify the analysis using counterfactuals, temporal checks, calculations, adversarial review
+2. **Step 6**: Verify the analysis using consequence tests, temporal checks, calculations, adversarial review
 3. **Output**: Original analysis + confidence assessment + identified uncertainties
 
 **Step 6 is NOT**:
@@ -236,7 +240,7 @@ After applying verification methods, assign confidence levels:
 
 ## Open Questions
 
-1. **Threshold calibration**: Is 60% counterfactual success the right bar? Need empirical testing.
+1. **Threshold calibration**: Is 60% consequence test success the right bar? Need empirical testing.
 2. **Verification cost**: Step 6 is expensive (more research, more tool calls). When is it worth it?
 3. **Automated checks**: Can some verifications be automated (temporal consistency, calculation checks)?
 4. **Cross-domain applicability**: Does Step 6 work the same for equity investing vs other domains?

@@ -1,0 +1,11 @@
+[project]
+name = "log-agent-mcp"
+version = "0.1.0"
+description = "MCP server for structured agent event-stream logging"
+requires-python = ">=3.10"
+dependencies = [
+    "fastmcp>=0.1.0",
+]
+
+[project.scripts]
+log-agent-mcp = "server:main"

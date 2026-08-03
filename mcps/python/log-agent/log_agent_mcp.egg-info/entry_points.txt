@@ -1,0 +1,2 @@
+[console_scripts]
+log-agent-mcp = server:main

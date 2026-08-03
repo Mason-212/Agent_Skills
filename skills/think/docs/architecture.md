@@ -254,9 +254,9 @@ quality/{domain}/
 - Universal standards: Evidence over narrative, falsifiable claims, scope boundaries
 - Thinking patterns: Evidence hierarchy, scope testing, mechanism over correlation
 - Verification methods: Code checks, cross-referencing, business flow analysis
-- Counterfactuals: Assumption reversal, alternative explanations, boundary conditions
+- Counterexamples: Assumption reversal, alternative explanations, boundary conditions
 - Common failure modes: Narrative without evidence, circular reasoning, undefined scope
-- Growth approach specifics: Quality indicators (RPO growth, gross margins, CapEx linkage), four-lens counterfactuals
+- Growth approach specifics: Quality indicators (RPO growth, gross margins, CapEx linkage), four-lens counterexamples
 
 **Self-contained**: No runtime dependencies on external files
 

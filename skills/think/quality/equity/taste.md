@@ -310,7 +310,9 @@ When using Growth approach, additional quality indicators apply:
 
 **Threshold**: 3+ year qualification = strong moat; <1 year = weak moat
 
-### Growth-Specific Counterfactuals
+### Growth-Specific Counterexamples
+
+**Purpose**: Stress-test growth investment models by identifying boundary conditions and failure modes.
 
 **Bottleneck Disappears**: What if the physical constraint is solved/bypassed? Research alternative solutions, monitor if demand shifts.
 

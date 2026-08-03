@@ -16,9 +16,11 @@
 
 ---
 
-## Verification Method 1: Counterfactual Testing
+## Verification Method 1: Consequence Testing
 
 **Method**: "If my model is TRUE, what ELSE must be observable?"
+
+**Note**: This is not RL/ML counterfactuals (which ask "what if action B was chosen instead of A?"). This tests whether a model's logical consequences match independent evidence.
 
 ### Prediction 1: Power Infrastructure Suppliers Should Show Growing Backlog
 
@@ -81,7 +83,7 @@
 
 ---
 
-### Counterfactual Score: 3/3 executed predictions PASS (100%)
+### Consequence Testing Score: 3/3 executed predictions PASS (100%)
 
 **Assessment**: Power bottleneck thesis has strong independent confirmation.
 
@@ -445,7 +447,7 @@
 
 | Method | Score | Status |
 |--------|-------|--------|
-| 1. Counterfactual Testing | 3/3 (100%) | ✅ PASS |
+| 1. Consequence Testing | 3/3 (100%) | ✅ PASS |
 | 2. Temporal Consistency | 2/2 (100%) | ✅ PASS |
 | 3. Calculation Verification | 3/3 (100%) | ✅ PASS |
 | 4. Adversarial Review | Mixed | ⚠️ Bull stronger near-term, bear credible medium-term |
@@ -459,13 +461,13 @@
 ### High Confidence Claims (4+ methods pass)
 
 ✅ **Power bottleneck is real and extends NVDA moat**
-- Counterfactual (Vertiv backlog), temporal (margins held), cross-source (4 independent sources)
+- Consequence test (Vertiv backlog), temporal (margins held), cross-source (4 independent sources)
 
 ✅ **Hyperscaler CapEx sustained at $600B+ through 2027**
-- Counterfactual (company guidance), cross-source (earnings + analysts + bonds)
+- Consequence test (company guidance), cross-source (earnings + analysts + bonds)
 
 ✅ **NVDA pricing power intact (margins >70%)**
-- Temporal (3 years >70%), calculation (verified from raw data), counterfactual (receivables + advances)
+- Temporal (3 years >70%), calculation (verified from raw data), consequence test (receivables + advances)
 
 ### Medium Confidence Claims (2-3 methods pass)
 
@@ -474,7 +476,7 @@
 - True if 2-year horizon; questionable if 3-5 year horizon
 
 ⚠️ **Power bottleneck delays revenue but doesn't destroy demand**
-- Counterfactual (CapEx acceleration), but inventory growth worth monitoring
+- Consequence test (CapEx acceleration), but inventory growth worth monitoring
 
 ### Low Confidence Claims (<2 methods pass)
 
@@ -537,7 +539,7 @@
 
 ### What Worked
 
-✅ **Counterfactual testing was VERY effective**
+✅ **Consequence testing was VERY effective**
 - Vertiv backlog confirmed power bottleneck independently
 - Hyperscaler CapEx data validated demand thesis
 - Most valuable verification method
@@ -639,7 +641,7 @@
 ### Low Confidence (<2 methods pass):
 - AMD threat overblown: 0/3 methods confirmed (actually refuted)
 
-**Threshold calibration**: 60% counterfactual success = weak model (not tested in NVDA case, all counterfactuals passed).
+**Threshold calibration**: 60% consequence test success = weak model (not tested in NVDA case, all consequence tests passed).
 
 ---
 
@@ -660,7 +662,7 @@
 ### Framework Refinement Needed
 
 **Add to Step 6 guidance:**
-1. **Counterfactual testing is highest-ROI method** (prioritize this)
+1. **Consequence testing is highest-ROI method** (prioritize this)
 2. **Adversarial review prevents overconfidence** (always steel-man opposition)
 3. **Predictive testing is best for tracking, not immediate decisions**
 4. **Calculation verification is hygiene, not insight** (catches data bugs only)

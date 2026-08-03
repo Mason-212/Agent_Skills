@@ -20,6 +20,35 @@ Do not use for:
 - Straightforward implementation tasks
 - Questions with obvious single answers
 
+## Logging (Active - Framework Tuning Phase)
+
+**Status**: Logging is **enabled by default** while tuning the framework.
+
+**What gets logged**:
+- Decision lineage (attempts, checks, results)
+- MCP calls (tool, inputs, outputs summary)
+- Verification checks (pass/fail with reasoning)
+- Alternative generation (why previous attempt failed)
+
+**Log formats**:
+- **JSONL** (`skills/think/logs/YYYY-MM-DD-HHMMSS-{query-slug}.jsonl`) - Machine-readable event stream
+- **Markdown** (`skills/think/logs/YYYY-MM-DD-HHMMSS-{query-slug}.md`) - Human-readable with indents/prefixes
+
+**User notification**: At start of session, inform user:
+  "Logging session to skills/think/logs/2026-08-03-143000-stock-analysis.{jsonl,md}"
+
+**MCP Usage**: Use the **log-agent** MCP (exact server id: `log-agent`):
+- `create_log` - Initialize session
+- `append_event` - Log each decision point (`event_data` arg, not `data`)
+- `read_log` / `query_events` / `get_summary` / `aggregate_field` - Readback and stats
+
+**Server id rules (do not guess):**
+- Correct: `CallMcpTool(server="log-agent", ...)`
+- Wrong: `user-log-agent`, `user_log_agent`, or any `user-*` prefix inferred from Cursor's on-disk `mcps/` folder
+- The project `mcps/` folder names (`user-Atlassian`, etc.) are **not** authoritative server ids and may be stale
+- Discover with `GetMcpTools(server="log-agent")` or `GetMcpTools(pattern="log-agent")`. If a guessed id fails, retry with pattern/catalog — do **not** treat a partial "Available servers: ..." error as proof the server is missing
+- Confirm `serverStatus: "ready"` before logging; if unavailable, fall back to writing the same JSONL/markdown files directly and note the fallback in the session
+
 ## Purpose
 
 Apply the compression/decompression reasoning flow to construct, validate, and apply robust mental models that:
@@ -33,6 +62,205 @@ Apply the compression/decompression reasoning flow to construct, validate, and a
 ## Core Instruction: The Reasoning Flow
 
 Follow this five-step flow for every think skill query. This is **universal** - it works regardless of domain.
+
+## Iterative Refinement (Fail-Fast Architecture)
+
+**Principle**: Catch errors early (Steps 2-4) before wasting effort on broken foundations.
+
+**Attempt Loop** (max 3 attempts):
+
+1. **Generate model** (Step 1)
+2. **GATE 1: Step 2 Validate**
+   - Mechanistic Depth check
+   - Evidence Weighting check
+   - If FAIL → Generate alternative, try again
+   - If PASS → Proceed to Step 3
+
+3. **GATE 2: Step 3 Test**
+   - Counterexamples + Historical analogies
+   - If major contradiction → Return to Step 1
+   - If minor refinement → Adjust and continue
+
+4. **Continue through Steps 4-6**
+
+**Alternative Generation Methods** (when attempt fails):
+
+1. **Extend Mechanism**: Add deeper causal levels (for shallow models)
+2. **Inversion**: Flip key assumption (test opposite hypothesis)
+3. **Variable Substitution**: Keep structure, change key variable
+4. **Scope Narrowing**: Make model more specific (for overly broad models)
+
+**Stopping Conditions**:
+- ✅ Attempt passes all gates → Proceed with that model
+- ❌ 3 attempts exhausted → Report uncertainty with partial results
+- ❌ Contradictory evidence (Strong for AND against) → Report genuine uncertainty
+
+**Example Flow**:
+```
+Attempt 1: "Power bottleneck extends moat"
+  → Step 2: Mechanistic Depth FAIL (Level 2 only)
+  → Generate alternative via "Extend Mechanism"
+
+Attempt 2: "Power → 800V co-engineering → Switching costs → Moat"
+  → Step 2: Mechanistic Depth PASS (Level 5)
+  → Step 2: Evidence Weighting PASS (Strong: Vertiv backlog)
+  → Continue to Step 3-6
+  → Success!
+```
+
+**Logging**: All attempts logged with constraints for learning
+
+---
+
+## Logging Patterns (Instructions for Agent)
+
+### Initialization Pattern (At Query Start)
+
+After reading this SKILL.md, initialize logging:
+
+1. Resolve MCP (before first write):
+   - Server id is exactly `log-agent` (see **Server id rules** above)
+   - Prefer `GetMcpTools(server="log-agent")` once per session to confirm schema/`ready`
+   - Related equity MCPs use exact ids too: `yfinance`, `sec-edgar`, `Alpha Vantage` (space included)
+
+2. Generate log file paths (absolute paths required by log-agent):
+   - Base: `<repo>/skills/think/logs/YYYY-MM-DD-HHMMSS-{query-slug}`
+   - JSONL: `{base}.jsonl`
+   - Markdown: `{base}.md`
+   - Ensure the `logs/` directory exists before `create_log`
+
+3. Create log:
+   ```
+   CallMcpTool(server="log-agent", toolName="create_log",
+               arguments={
+                 "log_path": "{absolute_jsonl_path}",
+                 "metadata": {
+                   "query": "{user_query}",
+                   "framework": "think-6step",
+                   "session_id": "{generate_id}"
+                 }
+               })
+   ```
+
+4. Notify user: "Logging session to skills/think/logs/YYYY-MM-DD-HHMMSS-{query-slug}.{jsonl,md}"
+
+---
+
+### Step Logging Pattern
+
+At each step (1-6), pass `event_data` (required arg name):
+
+1. Log step start:
+   ```
+   CallMcpTool(server="log-agent", toolName="append_event",
+               arguments={
+                 "log_path": "{absolute_jsonl_path}",
+                 "event_type": "step_start",
+                 "event_data": {"step": 2, "step_name": "validate", "attempt": N}
+               })
+   ```
+
+2. Log significant decisions/checks (same `append_event` shape):
+   - Check starts: `event_type="check_start"`, `event_data={"check": "mechanistic_depth", "attempt": N}`
+   - Check results: `event_type="check_pass"` or `"check_fail"`
+   - Data gathered: `event_type="data_gathered"`
+   - Verification exceptions: `event_type="verification_exception"`
+   - Adversarial parity: `event_type="adversarial_parity_check"`
+   - Temporal scope: `event_type="temporal_scope"`
+
+3. Log step end:
+   ```
+   CallMcpTool(server="log-agent", toolName="append_event",
+               arguments={
+                 "log_path": "{absolute_jsonl_path}",
+                 "event_type": "step_end",
+                 "event_data": {"step": 2, "result": "pass", "attempt": N}
+               })
+   ```
+
+---
+
+### MCP Call Logging Pattern
+
+Whenever using yfinance, sec-edgar, Alpha Vantage, or other MCPs — use each server's **exact** catalog id (`yfinance`, not `user-yfinance`):
+
+1. Before call:
+   ```
+   CallMcpTool(server="log-agent", toolName="append_event",
+               arguments={
+                 "log_path": "{absolute_jsonl_path}",
+                 "event_type": "mcp_call_start",
+                 "event_data": {
+                   "server": "yfinance",
+                   "tool": "get_company_overview",
+                   "input_args": {"symbol": "NVDA"},
+                   "attempt": N
+                 }
+               })
+   ```
+
+2. After call:
+   ```
+   CallMcpTool(server="log-agent", toolName="append_event",
+               arguments={
+                 "log_path": "{absolute_jsonl_path}",
+                 "event_type": "mcp_call_end",
+                 "event_data": {
+                   "server": "yfinance",
+                   "tool": "get_company_overview",
+                   "status": "success",
+                   "output_summary": {
+                     "Symbol": "NVDA",
+                     "PERatio": 31.2,
+                     "ForwardPE": 28.1,
+                     "ProfitMargin": 0.63
+                   },
+                   "attempt": N
+                 }
+               })
+   ```
+
+**Note**: Log summary only (key fields), not full output
+
+---
+
+### Attempt Tracking Pattern
+
+At attempt boundaries (same `append_event` / `event_data` shape):
+
+1. Attempt start: `event_type="attempt_start"`, `event_data={"attempt": 1, "model_hypothesis": "...", "generation_method": "abductive_reasoning"}`
+
+2. If attempt fails: `event_type="attempt_end"` with `result="rejected"`, then `event_type="alternative_generation"` with method/constraint/new_hypothesis
+
+3. If attempt succeeds: `event_type="attempt_end"` with `result="accepted"`
+
+---
+
+### Finalization Pattern (At Query End)
+
+1. Log query end: `event_type="query_end"`, `event_data={"selected_attempt": 2, "total_attempts": 2, "confidence": "high"}`
+
+2. Generate markdown summary:
+   - Prefer `CallMcpTool(server="log-agent", toolName="read_log" or "get_summary", ...)`
+   - Format with numerical prefixes and indentation:
+     ```
+     1. Attempt 1: Power bottleneck hypothesis
+        1.1 Step 2: Validate
+            ❌ Mechanistic Depth: FAIL (Level 2, need 3+)
+        1.2 Result: REJECTED
+     2. Attempt 2: 800V co-engineering hypothesis
+        2.1 Step 2: Validate
+            ✅ Mechanistic Depth: PASS (Level 5)
+        2.2 Result: ACCEPTED
+     ```
+   - Write markdown file at `{base}.md`
+
+3. Report to user:
+   ```
+   "Session logged to skills/think/logs/2026-08-03-143000-stock-analysis.{jsonl,md}"
+   ```
+
+---
 
 ### Key Operating Principles
 
@@ -77,11 +305,70 @@ Only ask the user for:
 
 ---
 
-### Step 2: Validate Structure
+### Step 2: Validate Structure (CRITICAL GATE)
 
-**What**: Test whether the structure explains observations and predicts outcomes.
+**What**: Test whether the structure explains observations and is internally consistent.
 
-**How**:
+**FAIL-FAST CHECKS** (Required):
+
+#### Check 1: Mechanistic Depth Probing
+
+**Method**: "Can I explain this at 3+ levels of causation?"
+
+**Process**:
+1. State your claim
+2. Ask "Why?" and answer at each level:
+   - Level 1: Immediate cause
+   - Level 2: Cause of that cause  
+   - Level 3+: Root cause
+3. If you hit "I don't know" or circular reasoning before Level 3 → **FAIL**
+
+**Logging**:
+```
+log: check_start (check="mechanistic_depth")
+log: depth_level (level=1, question="...", answer="...")
+log: depth_level (level=2, question="...", answer="...")
+log: depth_stop (level=2, reason="circular_reasoning")
+log: check_fail (check="mechanistic_depth", achieved_level=2, required_level=3)
+```
+
+**Example**:
+- ❌ Shallow: "NVDA benefits from AI demand" (Level 1 only)
+- ✅ Deep: "NVDA benefits because: Data centers need GPUs (L1) → Scaling laws require more compute (L2) → Winner-take-most dynamics justify compute cost (L3) → ..."
+
+**If FAIL**: Generate alternative model with deeper mechanism. Max 3 attempts.
+
+---
+
+#### Check 2: Evidence Weighting
+
+**Method**: "Is my evidence Strong, Medium, or Weak?"
+
+**Criteria**:
+- **Strong**: Independent source, confirms prediction, high signal-to-noise, visible mechanism
+- **Medium**: Partial independence, consistent with alternatives, moderate noise
+- **Weak**: Same source as prior, only confirms known facts, high noise
+
+**Process**:
+1. For each evidence piece, assess: Direction, Strength, Independence
+2. If ALL evidence is Weak → **FAIL**
+3. Need at least 1 Strong independent source to proceed
+
+**Logging**:
+```
+log: evidence_assessed (source="...", strength="strong", independence=true, rationale="...")
+log: check_pass (check="evidence_weighting", strong_count=1)
+```
+
+**If FAIL**: Gather better data sources before proceeding.
+
+---
+
+**Step 2 Gate Decision**:
+- ✅ Both checks PASS → Proceed to Step 3
+- ❌ Either check FAILS → Log failure, generate alternative (return to Step 1)
+
+**How**: (existing validation content)
 - Does it explain existing evidence?
 - Does it make testable predictions?
 - Is it consistent with known facts?
@@ -99,7 +386,7 @@ Only ask the user for:
 
 **What**: Stress-test the structure to find limitations.
 
-**How**: Apply three types of counterexamples:
+**How**: Apply three types + historical validation:
 
 1. **Missing Variables**: What factors did you not consider?
    - Effect: Refine the model to include them
@@ -110,10 +397,42 @@ Only ask the user for:
 3. **Boundary Conditions**: Where does the model stop working?
    - Effect: Define scope explicitly
 
-**Output**: Refined model with known limitations and scope
+---
+
+**NEW: Analogical Reasoning** (Historical Counterexamples)
+
+**Method**: "What historical parallels exist, and where do they break down?"
+
+**Process**:
+1. Identify 2-3 historical analogies with structural similarities
+2. Map similarities (what's the same?)
+3. Map differences (what's different?)
+4. Extract lessons: Which outcomes are likely vs unlikely?
+5. **Critical**: Be explicit about where analogy breaks down
+
+**Logging**:
+```
+log: counterexample_test (type="historical_analogy", analogy="Cisco 1999", 
+     similarity="...", difference="...", lesson="...")
+```
+
+**Example (NVDA 2026)**:
+- **Analogy**: Cisco 1999 networking bottleneck
+- **Similarities**: Infrastructure bottleneck, dominant supplier, customer pre-payments
+- **Differences**: Cisco lacked software moat (NVDA has CUDA), networking commoditized (AI software proprietary)
+- **Lessons**: Bottleneck can last 3-5 years, but margins compress when resolved; NVDA's software moat may extend duration
+
+**Red Flags**:
+- Cherry-picking analogies that support thesis only
+- Ignoring disanalogies (where it breaks down)
+- "This time is different" without evidence
+
+---
+
+**Output**: Refined model with known limitations, scope, and historical risk patterns
 
 **Quality plugin augmentation** (if available):
-- Apply domain-specific stress tests (counterfactuals distilled from expert knowledge)
+- Apply domain-specific stress tests (counterexamples distilled from expert knowledge)
 - Test approach-specific failure modes
 
 ---
@@ -128,7 +447,35 @@ Only ask the user for:
 - Simplicity must be *earned* through validation
 - Don't compress into slogans or oversimplifications
 
-**Output**: Compressed principle that captures the validated structure
+---
+
+**NEW: Parsimony Testing** (Explicit Occam's Razor)
+
+**Method**: "Does each variable earn its complexity cost?"
+
+**Process**:
+1. List key variables in your model
+2. For each: "If I removed this, would my model fail to explain key observations?"
+3. If YES → Keep (load-bearing)
+4. If NO → Remove (decorative)
+
+**Logging**:
+```
+log: parsimony_test (variable="automotive_recovery", load_bearing=false, action="remove")
+log: parsimony_test (variable="CUDA_moat", load_bearing=true, action="keep")
+```
+
+**Example**:
+- Full model: GPU demand + Power bottleneck + 800V co-engineering + CUDA moat + AI hype + Automotive recovery
+- Test: Remove "Automotive recovery" → Model still explains margins? YES → Remove
+- Test: Remove "CUDA moat" → Model still explains 60%+ margins? NO → Keep
+- Simplified: GPU demand + Power bottleneck + 800V co-engineering + CUDA moat
+
+**Red Flag**: "Kitchen sink" models (adding every possible variable)
+
+---
+
+**Output**: Compressed principle that captures the validated structure with only load-bearing variables
 
 **Quality plugin augmentation** (if available):
 - Use domain-specific compression criteria (what complexity cannot be removed)
@@ -148,6 +495,45 @@ Only ask the user for:
 
 **Output**: Understanding or action guidance tailored to user's situation
 
+---
+
+**Temporal Scoping** (Required when thesis is time-bounded):
+
+If your model has expiration conditions or depends on a window of opportunity, structure output by time horizon:
+
+**Format**:
+
+1. **Near-term (0-12 months)**: [Confidence: HIGH/MEDIUM/LOW]
+   - Key drivers: What makes the thesis valid now
+   - Entry/recommendation: Specific action
+   - Exit trigger: Specific signal or threshold (not vague "monitor")
+
+2. **Medium-term (12-24 months)**: [Confidence: HIGH/MEDIUM/LOW]
+   - Degradation factors: What starts to weaken the thesis
+   - Position guidance: Hold / reduce / exit
+   - Exit trigger: Specific threshold
+
+3. **Long-term (24+ months)**: [Confidence: HIGH/MEDIUM/LOW]
+   - Structural changes: What invalidates the thesis
+   - Do NOT hold if: Explicit conditions
+
+**Example (Power bottleneck thesis)**:
+- Near-term (0-12 mo): HIGH — Vertiv order backlog visible, CapEx committed
+  - Exit trigger: Q3 hyperscaler CapEx guidance cuts >15%
+- Medium-term (12-24 mo): MEDIUM — Bottleneck persists but margin questions emerge
+  - Exit trigger: Transformer lead times compress to <12 months
+- Long-term (24+ mo): LOW — Supply chain resolves, margin compression likely
+  - Do NOT hold if: AI commercial ROI unproven by Q4 2027
+
+**Logging**:
+```
+append_event("temporal_scope", {
+  "horizon": "near_term",
+  "confidence": "high",
+  "exit_trigger": "hyperscaler_capex_cut_15pct"
+})
+```
+
 **Quality plugin augmentation** (if available):
 - Use verification methods (code to check claims, data validation, cross-referencing)
 - Determine depth based on stakes and domain standards
@@ -162,40 +548,139 @@ Only ask the user for:
 
 **How**: Apply three verification methods:
 
-#### 1. Counterfactual Testing (Highest Priority)
+#### 1. Consequence Testing (Highest Priority)
 
 **Method**: "If my model is TRUE, what ELSE must be observable?"
 
+**Note**: This is deductive prediction testing, not RL/ML counterfactuals (which ask "what if a different action was chosen?").
+
 **Process**:
 - Generate 3-5 independent predictions from your model
+- Verify **ALL** predictions before proceeding (default: 100% completeness)
 - Check predictions against sources you haven't used yet
 - Look for evidence that SHOULD exist if model is correct
-- Threshold: If <60% of predictions hold, model is weak
+
+**Completeness Requirements**:
+
+**Default: 100% verification required** — verify every prediction you generate.
+
+**Exception (<100% allowed ONLY when)**:
+1. Data is genuinely unavailable (proprietary, not yet released)
+2. Data is cost-prohibitive (subscription beyond reasonable reach)
+3. Prediction depends on a future event (cannot verify until it occurs)
+
+**If <100% verified**:
+- Document specific reason for each unverified prediction
+- Assess: Is unverified prediction load-bearing? (thesis fails if false)
+  - If YES → Lower confidence to LOW or mark as SPECULATIVE
+  - If NO → Proceed but note limitation explicitly
+- Mark thesis for follow-up verification when data becomes available
+
+**Logging**:
+```
+append_event("verification_exception", {
+  "prediction": "SMR_contract_acceleration",
+  "reason": "proprietary_data",
+  "load_bearing": false,
+  "confidence_impact": "none"
+})
+append_event("verification_completeness", {
+  "predictions_generated": 5,
+  "verified": 4,
+  "unverified": 1,
+  "pass_rate": 0.8,
+  "action": "proceed_with_documented_exception"
+})
+```
+
+**Threshold**: If verified predictions <60%, model is weak regardless of exceptions.
 
 **Example (Power bottleneck thesis)**:
-- Prediction 1: Power suppliers (Vertiv) should show order backlogs
-- Prediction 2: Hyperscaler CapEx should remain >$600B
-- Prediction 3: Data center construction timelines lengthening
-- Prediction 4: Utility CapEx spiking
+- Prediction 1: Power suppliers (Vertiv) should show order backlogs → Verify
+- Prediction 2: Hyperscaler CapEx should remain >$600B → Verify
+- Prediction 3: Data center construction timelines lengthening → Verify
+- Prediction 4: Utility CapEx spiking → Verify
 
 **Output**: Independent confirmation or refutation of key claims
 
 ---
 
-#### 2. Adversarial Review (Steel-Man Opposition)
+#### 2. Adversarial Review (Steel-Man Opposition) — Universal Parity
 
-**Method**: "Build the strongest possible counter-thesis and test THAT"
+**Goal**: Test whether bull case is uniquely strong or just internally consistent.
 
-**Process**:
-- State your thesis clearly
-- Build the BEST counter-argument (not a strawman)
-- Apply same rigor: gather evidence, test counterfactuals
-- Honest adjudication: Which explains observations better?
+**Method**: Generate counter-thesis and apply **identical rigor** to bull case.
 
-**Example (NVDA bull vs bear)**:
-- Bull: Power bottleneck extends moat, Forward PE 15.57 cheap
-- Bear: AMD reaches parity, FCF pressure forces CapEx cuts, margins compress
-- Test both → Bull stronger near-term, bear credible medium-term
+---
+
+**Step A: Generate Counter-Thesis (Generic Methods)**
+
+Use ONE of these systematic generation methods:
+
+1. **Inversion**: Flip your core claim
+   - Bull: "X is undervalued" → Bear: "X is overvalued"
+   - Bull: "Bottleneck persists 3-5 years" → Bear: "Bottleneck resolves in 12-18 months"
+
+2. **Variable Substitution**: Keep structure, change key variable
+   - Bull: "NVDA wins via CUDA moat" → Bear: "AMD wins via open ecosystem"
+
+3. **Mechanism Reversal**: Reverse causal direction
+   - Bull: "High demand drives scarcity" → Bear: "High prices destroy demand"
+
+4. **Alternative Explanation**: Different mechanism explains same observations
+   - Bull: "Margins high due to moat" → Bear: "Margins high due to temporary shortage"
+
+**Output**: Explicit counter-thesis statement with clear mechanism
+
+---
+
+**Step B: Apply Parity Checklist (Universal Standards)**
+
+Bull and Bear MUST both meet these thresholds:
+
+- **Mechanistic Depth**: ≥3 levels of causal chain (Step 2 standard)
+  - If bull reached Level 5, attempt Level 5 for bear
+- **Evidence Quality**: ≥1 Strong independent source (Step 2 standard)
+  - Gather NEW evidence for bear case (don't reuse bull sources saying "risks exist")
+- **Consequence Testing**: 3+ predictions tested (Step 6.1 standard)
+  - Generate bear-case predictions: "If bear case TRUE, what ELSE must be observable?"
+- **Boundary Conditions**: Explicit scope (Step 3 standard)
+  - When/where does bear case apply vs not apply?
+
+**Logging**:
+```
+append_event("adversarial_parity_check", {
+  "bull_mechanistic_depth": 5,
+  "bear_mechanistic_depth": 5,
+  "parity_met": true
+})
+append_event("adversarial_adjudication", {
+  "bull_criteria_won": 2,
+  "bear_criteria_won": 0,
+  "tied": 2,
+  "decision": "bull_stronger"
+})
+```
+
+---
+
+**Step C: Honest Adjudication (Scored, Not Narrative)**
+
+Score both theses on identical rubric:
+
+| Criterion | Bull Score | Bear Score | Winner |
+|-----------|------------|------------|--------|
+| Mechanistic Depth (1-5 levels) | ? | ? | ? |
+| Evidence Strength (Strong source count) | ? | ? | ? |
+| Consequence Tests Passed (%) | ? | ? | ? |
+| Explains Contradictions? | ? | ? | ? |
+
+**Decision Rules**:
+- Bull wins 3/4 criteria → High confidence in bull case
+- Bull wins 2/4 criteria → Medium confidence
+- Tied or bear wins → Genuine uncertainty, report both theses
+
+**Critical**: If you didn't gather bear-case evidence or test bear predictions, adjudication is INVALID (confirmation bias).
 
 **Output**: Calibrated confidence with explicit risks and limitations
 
@@ -225,13 +710,15 @@ Only ask the user for:
 **Step 6 Output**: Confidence assessment with identified uncertainties
 
 **Confidence levels**:
-- **High**: 3/3 methods pass, counterfactuals hold (>60%), multiple independent sources
-- **Medium**: 2/3 methods pass, some counterfactuals fail, limited sources
-- **Low**: <2/3 methods pass, most counterfactuals fail, single source only
+- **High**: 3/3 methods pass, 100% consequence verification (or documented non-load-bearing exceptions only), adversarial parity met and bull wins 3/4 criteria, multiple independent sources
+- **Medium**: 2/3 methods pass, ≥80% consequence verification with documented exceptions, bull wins 2/4 adversarial criteria
+- **Low**: <2/3 methods pass, <80% consequence verification, bear wins or ties adversarial adjudication, single source only, or load-bearing prediction unverified
 
 **Red flags (reasoning may be wrong)**:
-- <60% of counterfactual predictions hold
-- Bull and bear cases equally strong (high uncertainty)
+- <60% of verified consequence predictions hold
+- Adversarial review is narrative-only (no bear evidence gathered)
+- Bull and bear cases equally strong on scored adjudication (high uncertainty)
+- Load-bearing prediction left unverified without documented reason
 - Only one source supports key claim
 - Sources contradict and discrepancy unexplained
 
@@ -326,7 +813,7 @@ When you detect an equity investing question:
 - Use quality indicators if relevant approach identified (e.g., RPO growth for Growth approach)
 
 **Step 3 (Counterexamples)**:
-- Apply generic counterfactuals (assumption reversal, alternative explanations, boundary conditions)
+- Apply generic counterexamples (assumption reversal, alternative explanations, boundary conditions)
 - Apply approach-specific stress tests if relevant (e.g., "What if CapEx reverses?" for Growth)
 - Check common failure modes (narrative without evidence, circular reasoning, etc.)
 
@@ -442,7 +929,7 @@ Confidence:
 
 Good reasoning demonstrates:
 - **Structure over facts**: Builds models that explain mechanisms, not just lists information
-- **Reality-tested**: Tests structures against evidence and counterexamples
+- **Reality-tested**: Tests structures against evidence and counterexamples (Step 3 stress tests)
 - **Explicit assumptions**: Makes hidden assumptions visible
 - **Bounded scope**: Defines where reasoning applies and where it breaks
 - **Adaptive rigor**: Goes deep when stakes are high, stays light when appropriate
