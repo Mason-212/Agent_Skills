@@ -941,12 +941,14 @@ Good reasoning demonstrates:
 ## Supporting Resources
 
 **Framework documentation** (`docs/`):
-- `framework.md` - Core concepts and terminology
-- `principles.md` - Evolution of the approach
-- `quality.md` - What excellence looks like
-- `architecture.md` - How plugins integrate with core flow (for users)
-- `learning-to-do.md` - Common execution gaps and how to fix them
-- `dag-spec.md` - Formal reasoning pipeline specification
+- `README.md` - Doc index (boundaries and reading order)
+- `architecture.md` - Two-layer design + plugins (users start here)
+- `framework.md` - Concepts and terminology
+- `principles.md` - Why the framework evolved
+- `reasoning-techniques.md` - Techniques per step, fail-fast gates, logging schema
+- `quality.md` - Taste and judgment
+- `learning-to-do.md` - Execution gaps and fixes
+- `../ir/dag-spec.md` - Formal pipeline contracts
 
 **Evaluation examples** (`evals/`):
 - `ai_education.md` - AI and education analysis
@@ -961,12 +963,13 @@ Good reasoning demonstrates:
 
 ## Remember
 
-The five-step compression/decompression flow is universal and always applies:
+The six-step flow is universal and always applies:
 
 1. Build Structure
 2. Validate
-3. Counterexamples
+3. Test (counterexamples)
 4. Compress
 5. Expand
+6. Verify
 
-Domain plugins make this flow **sharper** in specialized domains, but they never replace it.
+Domain plugins make this flow **sharper** in specialized domains, but they never replace it. Technique catalog: `docs/reasoning-techniques.md`.

@@ -64,10 +64,12 @@ skills/think/
 ├── SKILL.md                      # Main agent instructions (compression/decompression flow)
 ├── README.md                     # This file
 ├── docs/
-│   ├── architecture.md          # How it works (START HERE for users)
-│   ├── framework.md             # Core framework documentation
-│   ├── principles.md            # Evolution and key principles
-│   └── quality.md               # Quality principles (taste and judgment)
+│   ├── README.md                # Doc index — boundaries and reading order
+│   ├── architecture.md          # HOW: two-layer design + plugins (START HERE for users)
+│   ├── framework.md             # WHAT: concepts and terminology
+│   ├── principles.md            # WHY: design evolution
+│   ├── reasoning-techniques.md  # WHICH: techniques, fail-fast, logging schema
+│   └── quality.md               # Taste and judgment
 ├── ir/
 │   └── dag-spec.md              # DAG specification for reasoning process
 ├── test_cases/
@@ -81,15 +83,13 @@ skills/think/
 
 ## Quick Reference
 
-### Core Reasoning Flow (Compression/Decompression)
+### Core Reasoning Flow
 
-1. **Build Structure** - Create mental model that explains the domain
-2. **Validate** - Test against evidence and reality
-3. **Counterexamples** - Stress-test to find limitations (missing variables, contradictions, boundaries)
-4. **Compress** - Distill to essential insight
-5. **Expand** - Apply to user's specific context
+```
+Build → Validate → Test → Compress → Expand → Verify
+```
 
-**Domain plugins augment each step** with specialized knowledge when available.
+Domain plugins augment each step when available. Technique details: [`docs/reasoning-techniques.md`](docs/reasoning-techniques.md).
 
 ### Key Principles
 
@@ -101,12 +101,17 @@ skills/think/
 
 ## Documentation
 
-- **[docs/architecture.md](docs/architecture.md)** - **START HERE**: How the skill works - compression/decompression flow and how domain plugins integrate (for users)
-- **[docs/framework.md](docs/framework.md)** - Comprehensive framework specification including philosophy, terminology, evaluation methods, and reasoning principles
-- **[docs/principles.md](docs/principles.md)** - Evolution of the framework from compression/decompression to full reasoning system, with stress testing methodology
-- **[docs/quality.md](docs/quality.md)** - Quality principles for reasoning: taste (recognizing excellence) and judgment (decisions under uncertainty)
-- **[docs/learning-to-do.md](docs/learning-to-do.md)** - Common execution gaps and how to fix them (observed failures when applying the skill)
-- **[ir/dag-spec.md](ir/dag-spec.md)** - Implementation specification with node contracts, validation gates, and artifact schemas
+**Index**: **[docs/README.md](docs/README.md)** — which doc to read for what.
+
+| Doc | Role |
+|-----|------|
+| [architecture.md](docs/architecture.md) | **START HERE** (users) — plugins + two-layer design |
+| [framework.md](docs/framework.md) | Concepts, terminology, counterexample types |
+| [principles.md](docs/principles.md) | Why the framework evolved |
+| [reasoning-techniques.md](docs/reasoning-techniques.md) | Techniques per step, fail-fast, logging |
+| [quality.md](docs/quality.md) | Taste and judgment |
+| [learning-to-do.md](docs/learning-to-do.md) | Execution gaps and fixes |
+| [ir/dag-spec.md](ir/dag-spec.md) | Formal pipeline contracts |
 
 ## Evaluation Examples
 
@@ -114,70 +119,9 @@ skills/think/
 - **[test_cases/investing.md](test_cases/investing.md)** - Worked example: Identifying good investments with reasonable risk
 - **[test_cases/switzerland.md](test_cases/switzerland.md)** - Worked example: Understanding Switzerland's success through structured analysis
 
-## Architecture: Core Flow + Domain Plugins
+## Architecture
 
-The think skill uses a **two-layer architecture**:
-
-### Layer 1: Core Reasoning Flow (Universal)
-
-The compression/decompression flow runs on **every** query:
-
-```
-Build Structure → Validate → Counterexamples → Compress → Expand
-```
-
-This flow is domain-agnostic and always active.
-
-**Lives in**: `docs/framework.md`, `docs/principles.md`, `SKILL.md`
-
-### Layer 2: Domain Plugins (When Available)
-
-Domain plugins **augment** the core flow with specialized knowledge:
-
-- Known structures in this domain
-- Quality standards for evidence
-- Common failure modes and stress tests
-- Verification methods (code, data, cross-referencing)
-- Compression/expansion criteria
-
-**Lives in**: `quality/{domain}/`
-
-**References**: External knowledge bases (e.g., wiki-finance) compiled into self-contained plugins at authoring time
-
-### How They Work Together
-
-```
-Core Flow (Step 1: Build Structure)
-    ↓
-    ← Plugin injects: Context on known frameworks (1-2 sentence summaries)
-    ↓
-Core Flow (Step 2: Validate)
-    ↓
-    ← Plugin injects: Quality standards for evidence (evidence hierarchy)
-    ↓
-Core Flow (Step 3: Counterexamples)
-    ↓
-    ← Plugin injects: Domain-specific stress tests and failure modes
-    ↓
-[continues...]
-```
-
-**Key principle**: Plugins provide evaluation criteria compiled from expert knowledge. They're self-contained (no runtime dependencies on external files).
-
-**See**: [docs/architecture.md](docs/architecture.md) for detailed explanation of how plugins integrate at each step.
-
-### Example: Equity Investing Domain
-
-**Plugin location**: `quality/equity/taste.md`
-
-**Source knowledge** (compiled at authoring time): wiki-finance, investment books, personal experience
-
-**How it augments**:
-- Step 1 (Build): Provides context on 5 known approaches (Value, Growth, Passive, Momentum, Macro)
-- Step 2 (Validate): Quality standards (evidence hierarchy, quality indicators)
-- Step 3 (Counterexamples): Domain-specific stress tests, failure modes
-- Step 4 (Compress): What complexity must stay explicit in investing
-- Step 5 (Expand): Verification methods (pull 10-K data, calculate metrics)
+Two-layer design (core flow + optional domain plugins): see **[docs/architecture.md](docs/architecture.md)**. Equity example plugin: `quality/equity/taste.md`.
 
 ## Philosophy
 
