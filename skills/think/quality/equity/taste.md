@@ -62,6 +62,12 @@ This section defines which data sources and tools to use for equity analysis, re
 **When analyzing stocks:**
 
 ```
+Step 0 (Required - before any model building): Define candidate universe
+  → State explicitly: which market (US, global?), which sectors, which size range
+  → Example: "Considering S&P 500 large-cap tech and energy, excluding financials"
+  → If the prompt specifies a sector or theme, use that; if open-ended, state your scope assumption
+  → Output: Named universe (5-20 candidates) before proceeding to Step 1
+
 Step 1: Define universe via web search (no rate limit)
   → "major semiconductor companies by market cap 2026"
   
@@ -114,6 +120,17 @@ TSM, INTC, QCOM assessed via web search estimates."
 - Made-up numbers
 - Unsourced claims
 - Conflating trailing (verified) with forward (estimated) without labeling
+
+---
+
+## Equity-Specific Verification Threshold
+
+**Override**: For equity recommendations (buy, sell, hold, position sizing), raise the consequence verification threshold from the default 60% to **80%**.
+
+- Default (explanatory analysis): <60% pass rate = weak model
+- Equity recommendations: <80% pass rate = weak model; do not issue a recommendation
+
+If you cannot reach 80% due to data unavailability, explicitly state which predictions are unverified, whether they are load-bearing, and lower confidence to MEDIUM or LOW accordingly. Do not issue a HIGH-confidence equity recommendation with <80% verified predictions.
 
 ---
 

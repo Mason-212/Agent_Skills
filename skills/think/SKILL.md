@@ -278,9 +278,21 @@ Only ask the user for:
 
 **Default behavior**: Start reasoning immediately with available information. Gather more data using tools as needed. Only stop to ask if you need user-specific input that cannot be obtained otherwise.
 
+**User-context gate (actionable recommendations only)**: When the query asks for a recommendation (invest, decide, choose), state your assumed user context upfront before proceeding — then ask the user to confirm or correct in one question:
+- Assumed risk profile (e.g., moderate)
+- Assumed time horizon (e.g., 1-3 years)
+- Assumed portfolio constraints (e.g., none stated)
+
+Do not run a checklist. One sentence of stated assumptions + one confirmation question is sufficient. If the user's prior messages already contain this context, skip the gate.
+
 **Example - Good**:
 - User: "Should I invest in Company X?"
 - Agent: *Searches for Company X, pulls financials, researches industry, builds structure, then asks only about user's time horizon/goals if not already stated*
+
+**Example - Good (actionable recommendation)**:
+- User: "Recommend 3 stocks for August 2026"
+- Agent: "Assuming moderate risk tolerance, 1-3 year horizon, no existing position constraints — correct? I'll proceed with analysis while you confirm."
+- Agent: *Immediately begins research without waiting for reply*
 
 **Example - Bad**:
 - User: "Should I invest in Company X?"
@@ -708,6 +720,17 @@ Score both theses on identical rubric:
 ---
 
 **Step 6 Output**: Confidence assessment with identified uncertainties
+
+**Required: Scored bull/bear adjudication table** — this must appear in the user-visible output, not only in internal reasoning. Confidence labels are only credible if traceable to this table:
+
+| Criterion | Bull | Bear | Winner |
+|-----------|------|------|--------|
+| Mechanistic depth (levels reached) | ? | ? | ? |
+| Evidence strength (strong source count) | ? | ? | ? |
+| Consequence tests passed (%) | ? | ? | ? |
+| Explains contradictions? | ? | ? | ? |
+
+If the adversarial review was skipped or bear evidence was not independently gathered, mark adjudication as INVALID and lower confidence to LOW.
 
 **Confidence levels**:
 - **High**: 3/3 methods pass, 100% consequence verification (or documented non-load-bearing exceptions only), adversarial parity met and bull wins 3/4 criteria, multiple independent sources
