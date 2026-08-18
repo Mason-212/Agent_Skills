@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.edc.pr-tracker</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>__SCRIPT_PATH__</string>
+    </array>
+
+    <!-- Run every 30 minutes. On each tick: skip if off-network (VPN check), skip if already
+         succeeded today (sentinel file). Effectively runs once per day as soon as the network
+         is available, then goes quiet until midnight. To change frequency, update this value
+         and reload: launchctl unload this file && launchctl load this file -->
+    <key>StartInterval</key>
+    <integer>1800</integer>
+
+    <key>StandardOutPath</key>
+    <string>__LOG_PATH__</string>
+
+    <key>StandardErrorPath</key>
+    <string>__LOG_PATH__</string>
+
+    <!-- Runs once on load/boot so missed scheduled windows are caught -->
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>

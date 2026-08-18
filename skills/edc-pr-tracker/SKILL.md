@@ -25,6 +25,34 @@ Activate this skill when the user wants to:
 | launchd plist | `~/Library/LaunchAgents/com.edc.pr-tracker.plist` |
 | Output vault | `~/Documents/dev/sfVault/1_orgs/0_edc/PRs/<person>/YYYYMMDD-<pr_number>-<slug>.md` |
 | Logs | `~/Library/Logs/pr-tracker.log` |
+| Setup script | `skills/edc-pr-tracker/setup.sh` (this folder) |
+| Plist template | `skills/edc-pr-tracker/com.edc.pr-tracker.plist.template` (this folder) |
+
+## Onboarding a New Mac
+
+Run once after cloning `edc-python`:
+
+```bash
+bash ~/path/to/skills/edc-pr-tracker/setup.sh
+```
+
+Optional flags (all have sensible defaults):
+
+```bash
+bash setup.sh \
+  --repo-root ~/Documents/dev/git/a360/edc-python \
+  --vault-dir ~/Documents/dev/sfVault/1_orgs/0_edc/PRs \
+  --gh-login  your-github-login
+```
+
+The script:
+1. Resolves your GitHub login automatically from `gh auth status` if not passed
+2. Updates `vault_dir` in `config.yaml` to the correct absolute path for this machine
+3. Adds your login to the `people` list if not already present
+4. Generates `~/Library/LaunchAgents/com.edc.pr-tracker.plist` from the template (substituting real paths)
+5. Loads the launchd agent
+
+Prerequisites: `gh` CLI authenticated to `git.soma.salesforce.com`, `uv` installed.
 
 ## Operating Procedure
 
@@ -82,22 +110,20 @@ Edit `config.yaml`, update `repo` (format: `org/repo`) and optionally `gh_host`.
 
 ### 5. Change schedule
 
-Two-step change — both files must stay in sync:
+The plist uses `StartInterval` (every 30 minutes) instead of fixed clock times. The script handles idempotency itself:
 
-**Step A — update `config.yaml`** `schedule.times` list (24h `HH:MM` strings).
+- **VPN check**: if `git.soma.salesforce.com` is unreachable, the run exits 0 cleanly with a "SKIP: off VPN" message and launchd retries in 30 min.
+- **Daily sentinel**: on a successful run, a sentinel file `~/Library/Logs/pr-tracker-YYYYMMDD.ok` is written. All subsequent 30-min ticks that day skip immediately. Sentinel resets at midnight (new date = new filename).
+- **Force override**: set `PR_TRACKER_FORCE=1` to bypass the sentinel for a manual re-run.
 
-**Step B — update the launchd plist** `~/Library/LaunchAgents/com.edc.pr-tracker.plist`:
-- Each time becomes one `<dict>` inside `<array>` under `StartCalendarInterval`
-- Example for 08:00 and 17:00:
-  ```xml
-  <key>StartCalendarInterval</key>
-  <array>
-    <dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
-    <dict><key>Hour</key><integer>17</integer><key>Minute</key><integer>0</integer></dict>
-  </array>
-  ```
+To change the retry frequency, update `StartInterval` (seconds) in the plist, then reload:
 
-**Step C — reload launchd**:
+```xml
+<key>StartInterval</key>
+<integer>1800</integer>  <!-- 30 minutes -->
+```
+
+**Reload launchd after any plist edit**:
 ```bash
 launchctl unload ~/Library/LaunchAgents/com.edc.pr-tracker.plist
 launchctl load   ~/Library/LaunchAgents/com.edc.pr-tracker.plist
@@ -149,3 +175,6 @@ Files are **overwritten** on each run (same date + PR number = same filename), s
 - Never remove the `gh_host` key — `gh` CLI requires it to target the internal GitHub
 - The plist must be unloaded before editing and reloaded after, or launchd ignores changes
 - Do not run this skill on non-macOS systems (launchd is macOS-only)
+- If the VPN is down, the run exits 0 cleanly (logged as SKIP) and retries in 30 min — no action needed
+- To force a re-run after a successful run today: `PR_TRACKER_FORCE=1 bash run_pr_tracker.sh`
+- Sentinel files live at `~/Library/Logs/pr-tracker-YYYYMMDD.ok` — delete one to allow a re-run without the env var
