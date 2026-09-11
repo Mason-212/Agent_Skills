@@ -99,6 +99,10 @@ docs/behavioral/
 - **critique-me** - Rubrics-based code critique
 - **spec-driven-development-slc** - Spec-first development workflow
 
+### School
+- **pullschool** - Pull latest commits from GitHub `Mason-212/school` into the local school repo
+- **pushschool** - Commit and push anything under the local school repo to `Mason-212/school`
+
 ### Domain-Specific
 - **edc-splunk** - Write and refine Splunk SPL queries
 - **gus** - Query Salesforce GUS work items
