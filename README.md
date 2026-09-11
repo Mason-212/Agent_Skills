@@ -102,6 +102,7 @@ docs/behavioral/
 ### School
 - **pullschool** - Pull latest commits from GitHub `Mason-212/school` into the local school repo
 - **pushschool** - Commit and push anything under the local school repo to `Mason-212/school`
+- **ocrstatus** - Show the ocr-to-md watcher status and pending OCR Inbox queue
 
 ### Domain-Specific
 - **edc-splunk** - Write and refine Splunk SPL queries
